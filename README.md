@@ -127,8 +127,7 @@ Energy (kWh) = Power × Hours / 1000
 
 ## Known Issues
 
-- October energy production slightly overstates due to simplified hourly GHI model
-- Recommend integrating real weather data (PVGIS, NREL) for production accuracy
+- Energy production calculation is inaccurate
 
 ## Future Enhancements
 

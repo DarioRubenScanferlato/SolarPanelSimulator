@@ -5,14 +5,15 @@ REST API for solar energy production simulation
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from app.models import SolarInput, SolarOutput, ValidationError as ValidationErrorModel
+
 from app.calculator import simulate
+from app.models import SolarInput, SolarOutput
 from app.validation import validate_input
 
 app = FastAPI(
     title="Solar Panel Simulator API",
     description="Calculate solar panel energy production and savings",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Enable CORS for frontend (localhost:3000 for development)
@@ -43,7 +44,7 @@ async def simulate_solar_system(input_data: SolarInput):
     if validation_errors:
         raise HTTPException(
             status_code=422,
-            detail=[{"field": e.field, "message": e.message} for e in validation_errors]
+            detail=[{"field": e.field, "message": e.message} for e in validation_errors],
         )
 
     try:
@@ -51,12 +52,10 @@ async def simulate_solar_system(input_data: SolarInput):
         result = simulate(input_data)
         return result
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Simulation error: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Simulation error: {str(e)}")
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -5,6 +5,7 @@ NOAA solar position algorithm for sunrise/sunset and sun position
 
 import math
 from datetime import datetime, timedelta
+
 from app.constants import CIVIL_TWILIGHT_ANGLE
 
 
@@ -23,42 +24,40 @@ def day_of_year(date: datetime) -> int:
 
 
 def equation_of_time(julian_day_num: float) -> float:
-    """Calculate equation of time in minutes (Spencer 1971)."""
-    jd = julian_day_num - 2451545.0
-    jc = jd / 36525.0
+    """
+    Equation of time in minutes (positive = sundial ahead of clock).
+    NOAA solar position algorithm.
+    """
+    t = (julian_day_num - 2451545.0) / 36525.0  # Julian centuries since J2000
 
-    # Mean longitude of sun
-    l0 = 280.46646 + jc * (36000.76983 + jc * 0.0003032)
-    l0 = l0 % 360
+    # Geometric mean longitude of sun (deg)
+    l0 = (280.46646 + t * (36000.76983 + t * 0.0003032)) % 360
 
-    # Mean anomaly of sun
-    m = 357.52911 + jc * (35999.05029 - jc * 0.0001536)
+    # Mean anomaly of sun (deg)
+    m = 357.52911 + t * (35999.05029 - t * 0.0001537)
     m_rad = math.radians(m)
 
-    # Sun equation of center
-    c = ((1.914602 - jc * (0.004817 + jc * 0.000014)) * math.sin(m_rad) +
-         (0.019993 - jc * 0.000101) * math.sin(2 * m_rad) +
-         0.000029 * math.sin(3 * m_rad))
+    # Eccentricity of Earth's orbit
+    e = 0.016708634 - t * (0.000042037 + t * 0.0000001267)
 
-    # True longitude
-    sun_lon = l0 + c
+    # Mean obliquity of the ecliptic (deg, arcseconds form)
+    epsilon0 = 23.0 + (26.0 + (21.448 - t * (46.815 + t * (0.00059 - t * 0.001813))) / 60.0) / 60.0
 
-    # Apparent longitude (with aberration)
-    omega = 125.04 - jc * 1934.136
-    lambda_sun = sun_lon - 0.00569 - 0.00478 * math.sin(math.radians(omega))
+    # Corrected obliquity (small nutation term)
+    omega = 125.04 - 1934.136 * t
+    epsilon = epsilon0 + 0.00256 * math.cos(math.radians(omega))
 
-    # Equation of time
-    epsilon = 23.439291 - jc * 0.0130042
-    y = math.tan(math.radians(epsilon / 2))
-    y = y * y
+    y = math.tan(math.radians(epsilon / 2.0)) ** 2
 
-    eot = (y * math.sin(2 * math.radians(l0)) -
-           2 * math.sin(math.radians(m)) * y * math.cos(2 * math.radians(l0)) +
-           4 * math.sin(math.radians(m)) * y * math.cos(2 * math.radians(l0)) -
-           0.5 * y * y * math.sin(4 * math.radians(l0)) -
-           1.25 * math.sin(2 * math.radians(m)))
+    eot_rad = (
+        y * math.sin(2.0 * math.radians(l0))
+        - 2.0 * e * math.sin(m_rad)
+        + 4.0 * e * y * math.sin(m_rad) * math.cos(2.0 * math.radians(l0))
+        - 0.5 * y * y * math.sin(4.0 * math.radians(l0))
+        - 1.25 * e * e * math.sin(2.0 * m_rad)
+    )
 
-    return math.degrees(eot) * 4  # Convert to minutes
+    return math.degrees(eot_rad) * 4.0  # Minutes
 
 
 def sun_declination(julian_day_num: float) -> float:
@@ -77,9 +76,11 @@ def sun_declination(julian_day_num: float) -> float:
     m_rad = math.radians(m)
 
     # Equation of center
-    c = ((1.914602 - jc * (0.004817 + jc * 0.000014)) * math.sin(m_rad) +
-         (0.019993 - jc * 0.000101) * math.sin(2 * m_rad) +
-         0.000029 * math.sin(3 * m_rad))
+    c = (
+        (1.914602 - jc * (0.004817 + jc * 0.000014)) * math.sin(m_rad)
+        + (0.019993 - jc * 0.000101) * math.sin(2 * m_rad)
+        + 0.000029 * math.sin(3 * m_rad)
+    )
 
     # True longitude
     sun_lon = l0 + c
@@ -91,47 +92,49 @@ def sun_declination(julian_day_num: float) -> float:
     epsilon = 23.439291 - jc * 0.0130042 - jc * jc * 0.00000164 + jc * jc * jc * 0.000000504
 
     # Declination
-    delta = math.degrees(math.asin(math.sin(math.radians(epsilon)) * math.sin(math.radians(lambda_sun))))
+    delta = math.degrees(
+        math.asin(math.sin(math.radians(epsilon)) * math.sin(math.radians(lambda_sun)))
+    )
     return delta
 
 
 def sunrise_sunset(latitude: float, longitude: float, date: datetime) -> tuple:
     """
-    Calculate sunrise and sunset times (civil twilight).
+    Calculate sunrise and sunset times (civil twilight, sun -6° below horizon).
     Returns: (sunrise_time, sunset_time) as datetime objects in UTC.
+
+    For polar night returns (date, date); for midnight sun returns
+    (date, date + 1 day).
     """
     jd = julian_day(date)
-    n = jd - 2451545.0 - 0.0009
-    n = math.floor(n + 0.5) - 0.5
+    delta = sun_declination(jd)
 
-    # Solar noon
-    j_noon = n + 0.0009 + longitude / 360.0
+    lat_rad = math.radians(latitude)
+    delta_rad = math.radians(delta)
+    sin_altitude_threshold = math.sin(math.radians(CIVIL_TWILIGHT_ANGLE))
 
-    # Declination and equation of time
-    m = (357.52910 + 35999.05030 * j_noon / 36525.0) % 360
-    c = ((1.9142 - 0.004817 * j_noon / 36525.0) * math.sin(math.radians(m)) +
-         0.019993 * math.sin(2 * math.radians(m)) + 0.00029 * math.sin(3 * math.radians(m)))
-    lambda_sun = (280.4664 + 36000.7698 * j_noon / 36525.0 + c) % 360
+    denom = math.cos(lat_rad) * math.cos(delta_rad)
+    if abs(denom) < 1e-9:
+        return (date, date)
 
-    jde = j_noon + 0.1570 - (0.004817 + 0.000041 * j_noon / 36525.0) * math.sin(2 * math.radians(m))
-    epsilon = 23.4393 - 0.0130 * jde / 36525.0
-    delta = math.degrees(math.asin(math.sin(math.radians(epsilon)) * math.sin(math.radians(lambda_sun))))
+    cos_h0 = (sin_altitude_threshold - math.sin(lat_rad) * math.sin(delta_rad)) / denom
 
-    # Hour angle for civil twilight
-    h0 = math.cos(math.radians(CIVIL_TWILIGHT_ANGLE)) / (math.cos(math.radians(latitude)) * math.cos(math.radians(delta))) - math.tan(math.radians(latitude)) * math.tan(math.radians(delta))
-    # Clamp h0 to valid acos range [-1, 1]
-    h0 = max(-1, min(1, h0))
-    h0 = math.degrees(math.acos(h0))
+    if cos_h0 > 1.0:
+        return (date, date)  # Polar night
+    if cos_h0 < -1.0:
+        return (date, date + timedelta(days=1))  # Midnight sun
 
-    # Sunrise and sunset in hours
-    eot = equation_of_time(jd) / 60.0
-    sunrise_hour = (12 - h0 / 15 - longitude / 15 - eot / 60) / 24
-    sunset_hour = (12 + h0 / 15 - longitude / 15 - eot / 60) / 24
+    h0_deg = math.degrees(math.acos(cos_h0))
 
-    # Convert to datetime
-    sunrise = date + timedelta(days=sunrise_hour)
-    sunset = date + timedelta(days=sunset_hour)
+    # Solar noon in UTC hours: LST = UTC + longitude/15 + EoT/60
+    eot_minutes = equation_of_time(jd)
+    solar_noon_utc = 12.0 - longitude / 15.0 - eot_minutes / 60.0
 
+    sunrise_hour = solar_noon_utc - h0_deg / 15.0
+    sunset_hour = solar_noon_utc + h0_deg / 15.0
+
+    sunrise = date + timedelta(hours=sunrise_hour)
+    sunset = date + timedelta(hours=sunset_hour)
     return (sunrise, sunset)
 
 
@@ -139,17 +142,16 @@ def sun_elevation(latitude: float, longitude: float, date: datetime) -> float:
     """Calculate sun elevation angle in degrees at solar noon."""
     jd = julian_day(date)
     declination = sun_declination(jd)
-    eot = equation_of_time(jd)
-
-    # Solar noon
-    solar_noon_hours = 12 - longitude / 15 - eot / 60
 
     # Hour angle at solar noon (0)
     h = 0
 
     # Elevation angle
-    sin_elevation = (math.sin(math.radians(latitude)) * math.sin(math.radians(declination)) +
-                     math.cos(math.radians(latitude)) * math.cos(math.radians(declination)) * math.cos(math.radians(h)))
+    sin_elevation = math.sin(math.radians(latitude)) * math.sin(
+        math.radians(declination)
+    ) + math.cos(math.radians(latitude)) * math.cos(math.radians(declination)) * math.cos(
+        math.radians(h)
+    )
 
     elevation = math.degrees(math.asin(sin_elevation))
     return elevation
@@ -157,33 +159,40 @@ def sun_elevation(latitude: float, longitude: float, date: datetime) -> float:
 
 def hourly_sun_position(latitude: float, longitude: float, date: datetime, hour: int) -> tuple:
     """
-    Calculate sun elevation and azimuth for a specific hour.
+    Calculate sun elevation and azimuth at the given UTC hour.
+    Azimuth convention: 0=N, 90=E, 180=S, 270=W.
     Returns: (elevation_degrees, azimuth_degrees)
     """
     jd = julian_day(date)
     declination = sun_declination(jd)
     eot = equation_of_time(jd)
 
-    # Solar time for given hour
-    solar_time = hour - longitude / 15 + eot / 60
+    # Local solar time: LST = UTC + longitude/15 + EoT/60
+    solar_time = hour + longitude / 15.0 + eot / 60.0
+    h = (solar_time - 12.0) * 15.0  # Hour angle: negative=morning, positive=afternoon
 
-    # Hour angle
-    h = (solar_time - 12) * 15
+    lat_rad = math.radians(latitude)
+    decl_rad = math.radians(declination)
+    h_rad = math.radians(h)
 
-    # Elevation angle
-    sin_elevation = (math.sin(math.radians(latitude)) * math.sin(math.radians(declination)) +
-                     math.cos(math.radians(latitude)) * math.cos(math.radians(declination)) * math.cos(math.radians(h)))
-
+    sin_elevation = math.sin(lat_rad) * math.sin(decl_rad) + math.cos(lat_rad) * math.cos(
+        decl_rad
+    ) * math.cos(h_rad)
+    sin_elevation = max(-1.0, min(1.0, sin_elevation))
     elevation = math.degrees(math.asin(sin_elevation))
 
-    # Azimuth angle
-    cos_azimuth = (math.sin(math.radians(declination)) - math.sin(math.radians(latitude)) * sin_elevation) / (math.cos(math.radians(latitude)) * math.cos(math.radians(elevation) if elevation > -90 else -89.99))
+    cos_elev = math.cos(math.radians(elevation))
+    if abs(cos_elev) < 1e-9 or abs(math.cos(lat_rad)) < 1e-9:
+        return (elevation, 180.0)
 
-    if elevation > -90:
-        azimuth = math.degrees(math.acos(cos_azimuth))
-        if solar_time < 12:
-            azimuth = 360 - azimuth
-    else:
-        azimuth = 180
+    cos_azimuth = (math.sin(decl_rad) - math.sin(lat_rad) * sin_elevation) / (
+        math.cos(lat_rad) * cos_elev
+    )
+    cos_azimuth = max(-1.0, min(1.0, cos_azimuth))
+    azimuth = math.degrees(math.acos(cos_azimuth))
+
+    # acos gives 0-180. Sun is west of meridian after solar noon (h > 0).
+    if h > 0:
+        azimuth = 360.0 - azimuth
 
     return (elevation, azimuth)

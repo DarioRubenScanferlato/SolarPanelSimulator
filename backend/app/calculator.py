@@ -3,20 +3,33 @@ Solar Panel Simulator - Solar Calculator
 Main calculation engine orchestrating all solar simulations
 """
 
-from datetime import datetime, timedelta
 import math
-from app.models import SolarInput, SolarOutput
+from datetime import datetime, timedelta
+
 from app.constants import (
+    AMBIENT_TEMP_AMPLITUDE_C,
+    AMBIENT_TEMP_MEAN_C,
+    HOURS_PER_DAY,
+    MODULE_TEMP_RISE_COEFF,
+    MONTHS_PER_YEAR,
+    SYSTEM_LOSSES_FACTOR,
     TEMP_DERATING_COEFF,
     TEMP_REFERENCE,
-    MODULE_TEMP_RISE_COEFF,
-    SYSTEM_LOSSES_FACTOR,
-    AMBIENT_TEMP_CELSIUS,
-    HOURS_PER_DAY,
-    MONTHS_PER_YEAR,
 )
-from app.solar_position import sunrise_sunset, day_of_year
 from app.irradiance import hourly_irradiance
+from app.models import SolarInput, SolarOutput
+from app.solar_position import day_of_year, sunrise_sunset
+
+
+def seasonal_ambient_temperature(latitude: float, doy: int) -> float:
+    """
+    Heuristic seasonal ambient temperature (°C). Warmer in local summer,
+    cooler in local winter. Northern hemisphere peaks around doy 200
+    (late July, lagging the solstice); southern hemisphere is inverted.
+    """
+    sign = 1.0 if latitude >= 0 else -1.0
+    angle = 2.0 * math.pi * (doy - 200) / 365.0 * sign
+    return AMBIENT_TEMP_MEAN_C + AMBIENT_TEMP_AMPLITUDE_C * math.cos(angle)
 
 
 def adjust_efficiency_for_temperature(base_efficiency: float, module_temp: float) -> float:
@@ -37,8 +50,9 @@ def calculate_module_temperature(ambient_temp: float, irradiance: float) -> floa
     return ambient_temp + (irradiance * MODULE_TEMP_RISE_COEFF)
 
 
-def calculate_hourly_energy(panel_area: float, base_efficiency: float, irradiance: float,
-                           ambient_temp: float) -> tuple[float, float]:
+def calculate_hourly_energy(
+    panel_area: float, base_efficiency: float, irradiance: float, ambient_temp: float
+) -> tuple[float, float]:
     """
     Calculate power and energy for one hour.
     Returns: (power_kw, energy_kwh)
@@ -58,9 +72,15 @@ def calculate_hourly_energy(panel_area: float, base_efficiency: float, irradianc
     return (power_w / 1000, energy_kwh)  # Return in kW and kWh
 
 
-def calculate_daily_profile(latitude: float, longitude: float, date: datetime,
-                           panel_area: float, base_efficiency: float,
-                           tilt_angle: float, azimuth: float) -> tuple[list[float], float, float, str, str]:
+def calculate_daily_profile(
+    latitude: float,
+    longitude: float,
+    date: datetime,
+    panel_area: float,
+    base_efficiency: float,
+    tilt_angle: float,
+    azimuth: float,
+) -> tuple[list[float], float, float, str, str]:
     """
     Calculate hourly generation profile for a single day.
     Returns: (hourly_generation_kw, daily_total_kwh, peak_kw, sunrise_str, sunset_str)
@@ -72,12 +92,16 @@ def calculate_daily_profile(latitude: float, longitude: float, date: datetime,
     # Get sunrise/sunset
     sunrise_time, sunset_time = sunrise_sunset(latitude, longitude, date)
 
+    ambient_temp = seasonal_ambient_temperature(latitude, day_of_year(date))
+
     for hour in range(HOURS_PER_DAY):
         # Irradiance for this hour
         irradiance = hourly_irradiance(latitude, longitude, date, hour, tilt_angle, azimuth)
 
         # Hourly energy
-        power_kw, energy_kwh = calculate_hourly_energy(panel_area, base_efficiency, irradiance, AMBIENT_TEMP_CELSIUS)
+        power_kw, energy_kwh = calculate_hourly_energy(
+            panel_area, base_efficiency, irradiance, ambient_temp
+        )
 
         hourly_generation.append(power_kw)
         daily_total += energy_kwh
@@ -106,7 +130,6 @@ def simulate(input_data: SolarInput) -> SolarOutput:
     # Initialize tracking
     annual_energy = 0
     peak_hour_kw = 0
-    daily_profiles = []
     monthly_totals = [0.0] * MONTHS_PER_YEAR
 
     # Simulate each day
@@ -124,7 +147,7 @@ def simulate(input_data: SolarInput) -> SolarOutput:
             total_area,
             input_data.panel_efficiency / 100,
             input_data.tilt_angle_deg,
-            input_data.azimuth_deg
+            input_data.azimuth_deg,
         )
 
         # Accumulate
@@ -157,5 +180,5 @@ def simulate(input_data: SolarInput) -> SolarOutput:
         daily_sunrise=sunrise_first,
         daily_sunset=sunset_first,
         monthly_energy_kwh=[round(x, 1) for x in monthly_totals],
-        calculation_date=datetime.utcnow()
+        calculation_date=datetime.utcnow(),
     )

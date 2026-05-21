@@ -3,9 +3,10 @@ Solar Panel Simulator - Pydantic Models
 Request/response schemas and validation
 """
 
-from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import List
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class SolarInput(BaseModel):
@@ -15,7 +16,9 @@ class SolarInput(BaseModel):
     panel_area_m2: float = Field(..., ge=0.1, description="Panel area in square meters")
     panel_efficiency: float = Field(..., ge=5, le=25, description="Panel efficiency as percentage")
     tilt_angle_deg: float = Field(..., ge=0, le=90, description="Tilt angle in degrees")
-    azimuth_deg: float = Field(..., ge=0, le=360, description="Azimuth in degrees (0=N, 90=E, 180=S, 270=W)")
+    azimuth_deg: float = Field(
+        ..., ge=0, le=360, description="Azimuth in degrees (0=N, 90=E, 180=S, 270=W)"
+    )
     start_date: str = Field(..., description="Start date in YYYY-MM-DD format")
     duration_days: int = Field(..., ge=1, description="Simulation duration in days")
 
@@ -34,7 +37,9 @@ class SolarOutput(BaseModel):
     average_daily_kwh: float = Field(..., description="Average daily energy in kWh")
     peak_hour_kw: float = Field(..., description="Peak hourly generation in kW")
     system_capacity_kw: float = Field(..., description="Total system capacity in kW")
-    daily_hourly_generation: List[float] = Field(..., description="Hourly generation for first day (24 values)")
+    daily_hourly_generation: List[float] = Field(
+        ..., description="Hourly generation for first day (24 values)"
+    )
     daily_sunrise: str = Field(..., description="Sunrise time in HH:MM format")
     daily_sunset: str = Field(..., description="Sunset time in HH:MM format")
     monthly_energy_kwh: List[float] = Field(..., description="Monthly totals (12 values)")
