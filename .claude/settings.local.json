@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(bmad-help)",
+      "Skill(bmad-help:*)",
+      "Skill(bmad-domain-research)",
+      "Skill(bmad-domain-research:*)",
+      "WebSearch",
+      "Skill(bmad-product-brief)",
+      "Skill(bmad-product-brief:*)",
+      "Skill(bmad-prd)",
+      "Skill(bmad-prd:*)",
+      "Skill(bmad-quick-dev)",
+      "Skill(bmad-quick-dev:*)",
+      "Bash(uv --version)",
+      "Bash(uv sync *)",
+      "Bash(docker build *)",
+      "Bash(docker kill *)",
+      "Bash(docker rm *)",
+      "Bash(docker run *)",
+      "Bash(curl -s http://localhost:8000/docs)",
+      "Bash(docker-compose up *)",
+      "Bash(docker-compose ps *)",
+      "Bash(curl -s http://localhost:3000/index.html)",
+      "Bash(docker-compose down *)"
+    ]
+  }
+}
