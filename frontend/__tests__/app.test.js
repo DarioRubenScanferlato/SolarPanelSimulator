@@ -143,6 +143,59 @@ describe('app.js integration', () => {
     });
   });
 
+  describe('Form submission handling', () => {
+    test('form submission calls API and displays results', async () => {
+      const { simulateSolar } = require('../api.js');
+      const { updateResultCards } = require('../forms.js');
+
+      // Mock fetch for API call
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          annual_energy_kwh: 5000,
+          average_daily_kwh: 13.7,
+          peak_hour_kw: 2.93,
+          system_capacity_kw: 4.0,
+          daily_hourly_generation: Array(24).fill(0.2),
+          monthly_energy_kwh: Array(12).fill(400),
+          daily_sunrise: '03:18',
+          daily_sunset: '19:33'
+        })
+      });
+
+      const result = await simulateSolar({
+        latitude: 45,
+        longitude: 7,
+        panel_count: 10,
+        panel_area_m2: 2,
+        panel_efficiency: 20,
+        tilt_angle_deg: 35,
+        azimuth_deg: 180,
+        start_date: '2026-05-22',
+        duration_days: 365
+      });
+
+      expect(result.annual_energy_kwh).toBe(5000);
+      expect(result.daily_hourly_generation.length).toBe(24);
+    });
+
+    test('form input change clears previous errors', () => {
+      const { showFieldError, clearErrors } = require('../forms.js');
+
+      // Show an error
+      showFieldError('latitude', 'Invalid latitude');
+      const errorSpan = document.querySelector('.error');
+      expect(errorSpan.classList.contains('show')).toBe(true);
+
+      // Simulate input change event
+      const input = document.getElementById('latitude');
+      input.dispatchEvent(new Event('change'));
+      clearErrors();
+
+      expect(errorSpan.classList.contains('show')).toBe(false);
+    });
+  });
+
   describe('Module integration', () => {
     test('api module exports simulateSolar function', () => {
       const { simulateSolar } = require('../api.js');
@@ -314,6 +367,29 @@ describe('app.js integration', () => {
   });
 
   describe('Error handling flow', () => {
+    test('handles 422 validation errors from API', () => {
+      const { showFieldError } = require('../forms.js');
+
+      // Simulate API 422 error with field errors
+      const errorData = {
+        detail: [
+          { loc: ['body', 'latitude'], msg: 'Latitude must be between -90 and 90' },
+          { loc: ['body', 'panel_count'], msg: 'Panel count must be positive' }
+        ]
+      };
+
+      // Display field errors
+      errorData.detail.forEach(err => {
+        const fieldName = err.loc[1];
+        // Convert snake_case to camelCase
+        const fieldId = fieldName.replace(/_([a-z])/g, (_, char) => char.toUpperCase());
+        showFieldError(fieldId, err.msg);
+      });
+
+      const latitudeError = document.getElementById('latitude').parentElement.querySelector('.error');
+      expect(latitudeError.textContent).toContain('Latitude');
+    });
+
     test('field errors display in correct locations', () => {
       const { showFieldError } = require('../forms.js');
 

@@ -1,6 +1,12 @@
 # Lessons learned
 - Don't speed-run through planning phases just so you can start building something and getting dopamine hits for seeing a cool result inside the browser. BMAD is geared towards carefully guiding the AI by setting up guardrails. Focus on learning about how to enforce good coding practices, instead of building fast.
 - Think carefully about the features, architecture and code structure in the beginning because it's going to be slow to refactor all of it later. If you already have tests, it's going to be even slower.
+### Bmad commands summary
+- bmad-prd
+- bmad-create-architecture
+- bmad-security-review
+- bmad-create-epics-and-stories
+
 
 # Other considerations
 - After having worked on data science algorithms and physics simulations for almost a year, I immediately focused on the energy & engineering aspects of my application, rather than paying attention on building a web application that followed best practices. I think I missed the point of the exercise, which asked to implement a very simple application with focus on best practices.
@@ -13,10 +19,20 @@
 # TODO
 - Update readme
 - Finish tests, accessibility, security
+- Update favicon
+- Fix prek
 
 ### Create stories for
 - E2E tests
 - Playwright
 - Check WCAG violation/Accessibility
 - Security review
+- env management
 - Review dead code and simplify if possible
+
+
+### Ideas for next steps
+- Terraform
+- CI/CD
+- Database for saving simulations and possibly users
+- Telemetry, logs, etc..

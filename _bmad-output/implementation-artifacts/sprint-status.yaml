@@ -1,7 +1,6 @@
 # Sprint Status for bmad-solar-panels
 # generated: 2026-05-22
 # last_updated: 2026-05-22
-# story_files_created: 2026-05-22 (1-1-3-tab-layout-and-tab-switching.md)
 # project: bmad-solar-panels
 # project_key: NOKEY
 # tracking_system: file-system
@@ -31,10 +30,25 @@ development_status:
   1-1-3-tab-layout-and-tab-switching: done
   1-2-extract-api-module: done
   1-3-extract-forms-and-charts-modules-refactor-app-js: done
-  1-4-add-frontend-unit-tests-jest: in-progress
   epic-1-retrospective: optional
 
-  # Epic 2: Battery Storage Simulation
+  # Epic 3: Quality, Reliability & Security (PRIORITY - before Epic 2)
+  epic-3: in-progress
+  3-1-environment-management-system-backend: done
+  3-2-environment-management-system-frontend-docker: ready-for-dev
+  3-3-cors-hardening-rate-limiting: ready-for-dev
+  3-4-error-masking-security-headers: ready-for-dev
+  3-5-deployment-https-documentation: ready-for-dev
+  3-6-unit-testing-framework-battery-tests: ready-for-dev
+  3-7-integration-testing-security-tests: ready-for-dev
+  3-8-e2e-testing-framework-setup-playwright: ready-for-dev
+  3-9-e2e-test-implementation-solar-workflow: ready-for-dev
+  3-10-semantic-html-aria-improvements: ready-for-dev
+  3-11-keyboard-navigation-screen-reader-support: ready-for-dev
+  3-12-accessibility-audit-color-contrast-fixes: ready-for-dev
+  epic-3-retrospective: optional
+
+  # Epic 2: Battery Storage Simulation (deferred until Epic 3 complete)
   epic-2: backlog
   2-1-battery-backend-physics-model-api-extension-and-httpx-pin: ready-for-dev
   2-2-battery-frontend-form-chart-and-result-cards: ready-for-dev

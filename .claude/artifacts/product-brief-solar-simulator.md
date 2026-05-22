@@ -14,13 +14,15 @@ An interactive engineering simulation app that models solar panel energy product
 ## Primary Goals
 
 1. **Provide realistic solar energy simulation** — Calculate energy production using industry-standard formulas (irradiance, temperature derating, efficiency losses)
-2. **Offer interactive engineering visualizations** — Daily and yearly generation graphs that update immediately after parameter changes
-3. **Enable "what-if" experimentation** — Users test scenarios (panel count, tilt angle, location) and see instant results
-4. **Educate** — Demonstrate the physics of solar systems through interactive visualization
+2. **Simulate break-even period for the installation a solar system** - Configure costs, savings, and feed-in tariff revenue to estimate yearly revenue and break-even period
+3. **Offer interactive engineering visualizations** — Daily and yearly generation, savings graphs that update immediately after parameter changes
+4. **Enable "what-if" experimentation** — Users test scenarios (panel count, tilt angle, location) and see instant results
+5. **Educate** — Demonstrate the physics of solar systems through interactive visualization
+6. **Provide insights in relation to the profitability of a solar system** - Assist users in the evaluation of the purchase of a solar system, given their location and installation constraints
 
 ## Target Users
 
-- **Homeowners** — exploring whether solar makes sense for their roof
+- **Home and business owners** — exploring whether solar makes sense for their roof
 - **Engineering students** — learning solar system design and performance modeling
 - **Renewable energy enthusiasts** — experimenting with system optimization
 - **Solar installers** — quick feasibility checking and customer education
@@ -36,10 +38,11 @@ An interactive engineering simulation app that models solar panel energy product
 
 ### UX Flow
 1. User lands on page with pre-filled placeholder values
-2. User adjusts inputs (location, panel specs, date, duration)
+2. User adjusts inputs
 3. User clicks "Simulate"
 4. Graphs and result cards update at bottom of page
 5. User iterates with new parameters
+6. User can navigate across tabs to configure parameters and visualize graphs relative to energy production, battery and household consumption statistics, and financial simulations
 
 ## User Inputs
 
