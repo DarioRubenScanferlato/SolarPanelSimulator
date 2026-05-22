@@ -48,8 +48,6 @@ docker-compose.override.yml
 .env.local
 .env.*.local
 
-# Generated artifacts (BMad output)
-_bmad-output/
 
 # Build artifacts
 *.o
@@ -65,3 +63,6 @@ _bmad-output/
 node_modules/
 npm-debug.log
 yarn-error.log
+
+# Frontend
+frontend/coverage

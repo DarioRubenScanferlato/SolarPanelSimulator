@@ -26,7 +26,19 @@
       "Bash(docker compose *)",
       "Bash(pre-commit install *)",
       "Bash(pre-commit run *)",
-      "Bash(prek run *)"
+      "Bash(prek run *)",
+      "Skill(bmad-dev-story)",
+      "Skill(bmad-dev-story:*)",
+      "Skill(bmad-create-epics-and-stories)",
+      "Skill(bmad-create-epics-and-stories:*)",
+      "Skill(bmad-sprint-planning)",
+      "Skill(bmad-sprint-planning:*)",
+      "Skill(bmad-create-story)",
+      "Skill(bmad-create-story:*)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s -X POST http://localhost:8000/simulate -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(npm test *)",
+      "Bash(npm install *)"
     ]
   }
 }

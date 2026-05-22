@@ -15,8 +15,17 @@
         </header>
 
         <main>
-            <!-- Input Form -->
-            <section class="form-section">
+            <!-- Tab Navigation -->
+            <nav class="tab-nav">
+                <button class="tab-btn tab-active" data-tab="solar">Solar Simulation</button>
+                <button class="tab-btn" data-tab="battery">Battery Simulation</button>
+                <button class="tab-btn" data-tab="cost-analysis">Cost Analysis</button>
+            </nav>
+
+            <!-- Tab Panels -->
+            <section class="tab-panel" id="panel-solar">
+                <!-- Input Form -->
+                <section class="form-section">
                 <h2>System Parameters</h2>
                 <form id="simulatorForm">
                     <div class="form-grid">
@@ -128,6 +137,19 @@
                 <div class="spinner"></div>
                 <p>Simulating...</p>
             </div>
+            </section>
+
+            <!-- Battery Simulation Tab (Placeholder) -->
+            <section class="tab-panel" id="panel-battery" hidden>
+                <h2>Battery Simulation</h2>
+                <p>Battery simulation coming soon...</p>
+            </section>
+
+            <!-- Cost Analysis Tab (Placeholder) -->
+            <section class="tab-panel" id="panel-cost-analysis" hidden>
+                <h2>Cost Analysis</h2>
+                <p>Cost analysis coming soon...</p>
+            </section>
         </main>
 
         <footer>
@@ -135,6 +157,6 @@
         </footer>
     </div>
 
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>

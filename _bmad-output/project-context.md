@@ -1,0 +1,9 @@
+- The main goal is provide an estimate of energy production for a solar panel array over the year.
+- Secondary goal is to estimate the breakeven period for the installation of a solar system given equipment and installation costs, network energy price and feed in tariffs 
+- Frontend in vanilla javascript, backend in Python fastapi. It should be dockerized with docker-compose. Dockerfiles for frontend and backend with multi-stage builds, non-root users, and health checks.
+- QA-first approach. Each change and commit should be tested before merging any code.
+- Support dev/test environments through environment variables and compose profiles. 
+- Code should have unit tests for both frontend and backend with at least 70% coverage for both
+- Run accessibility audits using Lighthouse or axe-core (can be automated via Playwright). Ensure WCAG AA compliance.
+- Code MUST NOT HAVE security issues (XSS, injection, etc.).
+- Error handling for both frontend and backend should be graceful

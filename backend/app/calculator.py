@@ -176,7 +176,9 @@ def simulate(input_data: SolarInput) -> SolarOutput:
         average_daily_kwh=round(average_daily, 2),
         peak_hour_kw=round(peak_hour_kw, 2),
         system_capacity_kw=round(system_capacity_kw, 2),
-        daily_hourly_generation=[round(x, 3) for x in first_day_profile],
+        daily_hourly_generation=[round(x, 3) for x in first_day_profile]
+        if first_day_profile
+        else [],
         daily_sunrise=sunrise_first,
         daily_sunset=sunset_first,
         monthly_energy_kwh=[round(x, 1) for x in monthly_totals],

@@ -1,0 +1,22 @@
+{
+  "name": "solar-panel-simulator-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for Solar Panel Simulator",
+  "type": "module",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "@testing-library/dom": "^9.3.4",
+    "jsdom": "^22.1.0",
+    "@babel/preset-env": "^7.23.0",
+    "babel-jest": "^29.7.0"
+  }
+}
