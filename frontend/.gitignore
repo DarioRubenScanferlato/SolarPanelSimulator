@@ -1,0 +1,10 @@
+# Environment variables - local development and production
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Dependencies and build
+node_modules/
+dist/
+coverage/
