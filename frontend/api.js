@@ -1,3 +1,8 @@
+// API base URL — override via window.APP_API_URL for non-default deployments
+const API_URL = (typeof window !== 'undefined' && window.APP_API_URL)
+    ? window.APP_API_URL
+    : 'http://localhost:8000';
+
 export async function simulateSolar(payload) {
     const btn = document.getElementById('simulateBtn');
 
@@ -7,7 +12,7 @@ export async function simulateSolar(payload) {
         btn.textContent = 'Simulating…';
 
         // Make request
-        const response = await fetch('http://localhost:8000/simulate', {
+        const response = await fetch(`${API_URL}/simulate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)

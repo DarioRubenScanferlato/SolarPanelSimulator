@@ -275,19 +275,19 @@ RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "10"))
 
 Create `frontend/.env.example`:
 ```
-REACT_APP_API_URL=http://localhost:8000
+API_URL=http://localhost:8000
 REACT_APP_ENV=development
 ```
 
 Create `frontend/.env.local`:
 ```
-REACT_APP_API_URL=http://localhost:8000
+API_URL=http://localhost:8000
 REACT_APP_ENV=development
 ```
 
 **Implementation in `api.js`:**
 ```javascript
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:8000';
 
 export async function simulateSolar(payload) {
     const response = await fetch(`${API_BASE_URL}/simulate`, {
@@ -635,7 +635,7 @@ docker run --rm -it \
 
 - [ ] `.env.example` committed; `.env.local` and `.env.production` in `.gitignore`
 - [ ] CORS configured from `ALLOWED_ORIGINS` env var
-- [ ] API URLs moved to `REACT_APP_API_URL` (frontend) and `BACKEND_URL` (backend)
+- [ ] API URLs moved to `API_URL` (frontend) and `BACKEND_URL` (backend)
 - [ ] Rate limiting active on `/simulate` endpoint
 - [ ] Error messages masked in production
 - [ ] Security headers middleware added to all responses
@@ -653,7 +653,7 @@ docker run --rm -it \
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  User Browser (HTTPS)                                       │
-│  - Fetches from REACT_APP_API_URL env var                   │
+│  - Fetches from API_URL env var                   │
 │  - No hardcoded URLs                                         │
 └────────────────┬────────────────────────────────────────────┘
                  │ HTTPS (TLS)
@@ -1432,7 +1432,7 @@ RATE_LIMIT = int(os.getenv("RATE_LIMIT_PER_MINUTE", "10"))
 **`.env.example` (committed):**
 
 ```
-REACT_APP_API_URL=http://localhost:8000
+API_URL=http://localhost:8000
 REACT_APP_ENV=development
 REACT_APP_VERSION=1.0.0
 ```
@@ -1440,14 +1440,14 @@ REACT_APP_VERSION=1.0.0
 **`.env.local` (NOT committed, local dev):**
 
 ```
-REACT_APP_API_URL=http://localhost:8000
+API_URL=http://localhost:8000
 REACT_APP_ENV=development
 ```
 
 **`.env.production` (NOT committed, for build):**
 
 ```
-REACT_APP_API_URL=https://api.yourdomain.com
+API_URL=https://api.yourdomain.com
 REACT_APP_ENV=production
 REACT_APP_VERSION=1.0.0
 ```
@@ -1456,7 +1456,7 @@ REACT_APP_VERSION=1.0.0
 
 ```javascript
 // api.js
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_URL = process.env.API_URL || 'http://localhost:8000';
 
 export async function simulateSolar(payload) {
   const response = await fetch(`${API_URL}/simulate`, {
@@ -1870,7 +1870,7 @@ main.py (route)
 - Run `pytest --cov=app` before marking any backend story done; keep coverage >80%
 - **SECURITY:** Never hardcode API URLs, CORS origins, or rate limits — all must use environment variables
 - **SECURITY:** Use `os.getenv()` for all configuration; load `.env` file in backend startup
-- **SECURITY:** Frontend must use `process.env.REACT_APP_API_URL` for all fetch calls (not `http://localhost:8000`)
+- **SECURITY:** Frontend must use `process.env.API_URL` for all fetch calls (not `http://localhost:8000`)
 - **SECURITY:** Do not expose internal error details in production — check `ENV` variable before returning error text
 - **SECURITY:** All new API endpoints must include rate limiting via `@limiter.limit()` decorator
 - **SECURITY:** When modifying CORS, use explicit `allow_methods` and `allow_headers` — never use wildcard `["*"]`
@@ -2017,7 +2017,7 @@ Before proceeding with Epic 2 (Battery Simulation), the following security stori
   - Move `ALLOWED_ORIGINS`, `BACKEND_URL`, `RATE_LIMIT_PER_MINUTE` to env vars
 - **Frontend Changes:**
   - Create `frontend/.env.example` (committed)
-  - Update `api.js` to use `process.env.REACT_APP_API_URL` instead of hardcoded `http://localhost:8000`
+  - Update `api.js` to use `process.env.API_URL` instead of hardcoded `http://localhost:8000`
 - **Docker:**
   - Update `docker-compose.yml` to inject environment variables
 - **Tests:**

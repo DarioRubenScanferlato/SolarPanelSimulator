@@ -359,14 +359,14 @@ So that API URLs and configuration can change per deployment environment.
 
 **Given** I am setting up the frontend for local development
 **When** api.js loads
-**Then** the API_URL is read from process.env.REACT_APP_API_URL with fallback to 'http://localhost:8000'
+**Then** the API_URL is read from process.env.API_URL with fallback to 'http://localhost:8000'
 
-**Given** I have created a frontend/.env.local file with REACT_APP_API_URL=http://custom-api.local
+**Given** I have created a frontend/.env.local file with API_URL=http://custom-api.local
 **When** I start the development server
 **Then** all fetch calls in api.js use the custom API URL
 
 **Given** I am building the frontend for production
-**When** I set environment variable REACT_APP_API_URL=https://api.yourdomain.com before build
+**When** I set environment variable API_URL=https://api.yourdomain.com before build
 **Then** the built application uses the production API URL (verified in network requests)
 
 **And** frontend/.env.example exists with example values (committed to repo)
