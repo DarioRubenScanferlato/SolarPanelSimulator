@@ -3,6 +3,7 @@ Solar Panel Simulator - FastAPI Application
 REST API for solar energy production simulation
 """
 
+import json
 import logging
 import os
 import traceback
@@ -76,7 +77,7 @@ async def health_check():
     return {"status": "healthy"}
 
 
-@app.post("/simulate", response_model=SolarOutput, tags=["simulation"])
+@app.post("/simulate", tags=["simulation"])
 @limiter.limit(f"{rate_limit_per_minute}/minute")
 async def simulate_solar_system(request: Request, input_data: SolarInput):
     """
@@ -93,7 +94,9 @@ async def simulate_solar_system(request: Request, input_data: SolarInput):
 
     try:
         result = simulate(input_data)
-        return result
+        # Exclude None values from response to avoid empty battery fields in legacy requests
+        data = json.loads(result.model_dump_json(exclude_none=True))
+        return JSONResponse(content=data)
     except Exception as e:
         tb = traceback.format_exc()
         logger.error("Simulation error: %s\n%s", str(e), tb)

@@ -141,12 +141,16 @@ class TestInputValidation:
         assert response.status_code == 422
         assert "detail" in response.json()
 
-    def test_partial_battery_fields_ignored_for_now(self, client, valid_solar_payload):
-        """Test partial battery fields are ignored (battery not yet implemented)."""
+    def test_partial_battery_fields_rejected(self, client, valid_solar_payload):
+        """Test partial battery fields are rejected (all-or-nothing validation)."""
         payload = {**valid_solar_payload, "battery_capacity_kwh": 10.0}
         response = client.post("/simulate", json=payload)
-        assert response.status_code == 200
-        # Note: Battery validation will return 422 once Story 2-1 is implemented
+        assert response.status_code == 422
+        data = response.json()
+        assert "detail" in data
+        # Verify error message mentions battery validation
+        error_text = str(data)
+        assert "battery" in error_text.lower()
 
 
 class TestRateLimiting:

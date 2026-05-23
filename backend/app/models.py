@@ -21,6 +21,11 @@ class SolarInput(BaseModel):
     )
     start_date: str = Field(..., description="Start date in YYYY-MM-DD format")
     duration_days: int = Field(..., ge=1, description="Simulation duration in days")
+    battery_capacity_kwh: float | None = Field(None, ge=1, description="Battery capacity in kWh (optional, all-or-none with other battery fields)")
+    battery_charge_efficiency: float | None = Field(None, ge=80, le=99, description="Charge efficiency as percentage (optional)")
+    battery_discharge_efficiency: float | None = Field(None, ge=80, le=99, description="Discharge efficiency as percentage (optional)")
+    daily_load_kwh: float | None = Field(None, ge=0.1, description="Daily household load in kWh (optional)")
+    initial_soc_pct: float | None = Field(None, ge=0, le=100, description="Initial battery state of charge as percentage (optional)")
 
     @field_validator("start_date")
     @classmethod
@@ -44,6 +49,10 @@ class SolarOutput(BaseModel):
     daily_sunset: str = Field(..., description="Sunset time in HH:MM format")
     monthly_energy_kwh: List[float] = Field(..., description="Monthly totals (12 values)")
     calculation_date: datetime = Field(..., description="UTC timestamp of calculation")
+    battery_hourly_soc: List[float] | None = Field(None, description="Battery hourly state of charge in kWh (24 values if battery present)")
+    self_consumption_pct: float | None = Field(None, description="Percentage of solar used locally (0-100)")
+    grid_export_kwh: float | None = Field(None, description="Total energy exported to grid in kWh")
+    grid_import_kwh: float | None = Field(None, description="Total energy imported from grid in kWh")
 
 
 class ValidationError(BaseModel):

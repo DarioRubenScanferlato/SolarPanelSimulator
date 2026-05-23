@@ -115,4 +115,22 @@ def validate_input(input_data: SolarInput) -> list[ValidationError]:
             ValidationError(field="start_date", message="Invalid date format (use YYYY-MM-DD)")
         )
 
+    # Battery field validation (all-or-nothing: either all present or all None)
+    battery_fields = [
+        input_data.battery_capacity_kwh,
+        input_data.battery_charge_efficiency,
+        input_data.battery_discharge_efficiency,
+        input_data.daily_load_kwh,
+        input_data.initial_soc_pct,
+    ]
+    battery_provided = [f is not None for f in battery_fields]
+
+    if any(battery_provided) and not all(battery_provided):
+        errors.append(
+            ValidationError(
+                field="battery",
+                message="All battery fields must be provided together or not at all",
+            )
+        )
+
     return errors

@@ -1,15 +1,25 @@
 ---
 stepsCompleted: [1, 2, 3, 4]
-status: 'complete-ready-for-development'
-lastUpdated: '2026-05-22'
-completedAt: '2026-05-22'
+status: 'final-ready-for-sprint-planning'
+completedAt: '2026-05-23'
+lastUpdated: '2026-05-23'
+workflowCompletionDate: '2026-05-23'
+updateReason: 'Epics and stories creation workflow COMPLETE. Added Cost Analysis requirements (FR-10) and Stories 2.4-2.6 from updated PRD. All requirements validated and covered.'
 epicStructureApproved: true
+epicStructureNotes: 'Epic 3 (Quality, Reliability & Security) stories 3.1-3.12 already completed and applied to entire backend/frontend. Battery (2.1-2.3) and Cost (2.4-2.6) features automatically inherit all security middleware, CORS hardening, rate limiting, error masking, security headers, accessibility standards, and testing infrastructure. Only unit/module tests for battery.py and cost.py needed in stories 2.3 and 2.6.'
+requirementsApproved: true
 storiesGenerated: true
 validationPassed: true
+allFRsCovered: true
+dependenciesValidated: true
 inputDocuments:
   - .claude/artifacts/prd-solar-simulator.md
+  - _bmad-output/planning-artifacts/prd-solar-simulator.md (updated 2026-05-23)
   - _bmad-output/planning-artifacts/architecture.md
 project_name: bmad-solar-panels
+totalEpics: 3
+totalStories: 19
+newStoriesCreated: 3
 ---
 
 # bmad-solar-panels - Epic Breakdown
@@ -30,6 +40,8 @@ FR-5: Display summary result cards: annual energy (kWh), daily average (kWh/day)
 FR-6: Provide interactive parameter input form (location, system params, date, duration) with server-side validation and inline 422 error display
 FR-7: Load sensible placeholder defaults on page load so users can simulate immediately (Turin, 10 panels, 2m², 20%, 35°, 180°, today, 365 days)
 FR-8: Use an 8-step heuristic irradiance model (Spencer → Kasten-Young → Laue/Meinel → seasonal cloud factor → Erbs decomposition → isotropic transposition) with no external weather API
+FR-9: Model household energy balance with appliance-based consumption estimation and battery storage, calculating hourly state of charge, self-consumption rate, and grid import/export
+FR-10: Calculate financial viability of solar installation over 25 years with system cost, electricity savings, feed-in tariff revenue, and panel degradation (0.5%/year)
 
 ### NonFunctional Requirements
 
@@ -65,7 +77,9 @@ FR-5: Epic 1 — forms.js extracted from app.js, result card updates preserved
 FR-6: Epic 1 — forms.js extracted from app.js, validation and defaults preserved
 FR-7: Epic 1 — forms.js loads defaults on DOMContentLoaded, Turin values preserved
 FR-8: Epic 1 — irradiance.py untouched; regression tests must pass after refactor
-Battery simulation: Epic 2 — new capability (battery.py + battery UI)
+FR-9: Epic 2 Story 2.1-2.3 — Battery simulation (battery.py + battery UI)
+FR-10: Epic 2 Story 2.4-2.6 — Cost analysis with 25-year ROI (cost.py + cost UI)
+Tab Data Inheritance: Epic 2 Stories 2.2, 2.5 — Battery and Cost tabs inherit solar generation from Solar tab
 
 ## Epic List
 
@@ -77,13 +91,13 @@ Restructure the existing single-file frontend (app.js) into clean ES6 modules an
 **FRs reinforced:** FR-3, FR-4, FR-5, FR-6, FR-7
 **ARCH covered:** ARCH-3, ARCH-4, ARCH-5, ARCH-6, ARCH-7, ARCH-9
 
-### Epic 2: Battery Storage Simulation
+### Epic 2: Battery Storage Simulation & Cost Analysis
 
-Enable users to model the impact of adding a home battery to their solar installation — visualising hourly state-of-charge, self-consumption rate, and grid import/export alongside existing solar results.
+Enable users to model the impact of adding a home battery to their solar installation and understand the financial viability of their system — visualising hourly state-of-charge, self-consumption rate, grid import/export, cumulative ROI, and break-even period.
 
-**User outcome:** Users enter battery parameters and see a SoC chart plus self-consumption and grid metrics in the Battery Simulation tab.
-**FRs covered:** New capability (post-MVP battery feature)
-**ARCH covered:** ARCH-1, ARCH-2, ARCH-8
+**User outcome:** Users enter battery parameters to see impact on self-consumption; users enter financial parameters to see 25-year payback timeline and annual savings projections.
+**FRs covered:** FR-9 (Battery Simulation), FR-10 (Cost Analysis & Payback); Tab Data Inheritance model
+**ARCH covered:** ARCH-1, ARCH-2, ARCH-8 (battery), ARCH-Cost-1 through ARCH-Cost-6 (cost analysis)
 
 ---
 
@@ -290,6 +304,114 @@ So that battery simulation logic is thoroughly tested and edge cases are covered
 **And** test patterns cover edge cases: zero capacity passthrough, SoC never negative, SoC never exceeds capacity, efficiency losses
 
 **And** pytest is run with: pytest --cov=app --cov-fail-under=80
+
+---
+
+### Story 2.4: Cost Backend — ROI Module, API Extension
+
+As a developer,
+I want `cost.py` implementing the 25-year ROI calculation with panel degradation, `models.py` extended with optional cost fields, and `/simulate` wired to invoke cost analysis when those fields are present,
+So that the API supports cost analysis with full backwards compatibility.
+
+**Acceptance Criteria:**
+
+**Given** `cost.py` exports `calculate_25year_roi(annual_generation_kwh, system_cost_eur, electricity_price, feedin_tariff, degradation_percent, lifespan_years)`,
+**When** called with valid inputs,
+**Then** it returns a dict with `year_1_savings` (float €), `breakeven_year` (int or null), `cumulative_savings` (list of 25 floats), `total_25year_savings` (float €)
+
+**Given** `SolarInput` extended with optional fields: `system_cost_eur`, `electricity_price_eur_per_kwh`, `feedin_tariff_eur_per_kwh`, `lifespan_years`, `annual_degradation_percent` (all defaulting to sensible values),
+**When** POST `/simulate` is called with all cost fields populated,
+**Then** the response includes `cost_year_1_savings`, `cost_breakeven_year`, `cost_cumulative_savings`, `cost_total_25year_savings`
+
+**Given** a POST `/simulate` request with no cost fields,
+**When** the response is received,
+**Then** it contains only solar and battery fields (if present) — identical to previous response format (backwards compatible)
+
+**Given** the 25-year projection calculation,
+**When** degradation is applied (default 0.5%/year),
+**Then** Year 25 generation ≈ 12% lower than Year 1 (clamped to [0.88, 1.0] of initial)
+
+**Given** break-even calculation,
+**When** cumulative savings reach or exceed system cost,
+**Then** `breakeven_year` is set to the first year where cumulative ≥ cost; if no break-even within lifespan, `breakeven_year` is null
+
+**Given** Italian defaults for cost fields,
+**When** the values are not provided by the user,
+**Then** system defaults: system_cost = €1,800/kW, electricity_price = €0.32/kWh, feedin_tariff = €0.12/kWh, lifespan = 25 years, degradation = 0.5%/year
+
+---
+
+### Story 2.5: Cost Frontend — Form, Charts, and Result Cards
+
+As a homeowner or solar enthusiast,
+I want a Cost Analysis tab with a financial parameters form, cumulative ROI chart, year-over-year savings chart, and result cards,
+So that I can understand the long-term financial viability of my solar installation.
+
+**Acceptance Criteria:**
+
+**Given** the Cost Analysis tab,
+**When** I view it,
+**Then** the form contains labelled inputs for: System Cost (€), Electricity Price (€/kWh), Feed-in Tariff (€/kWh), System Lifespan (years), Annual Degradation (%/year), and a "Simulate" button
+
+**Given** the Cost Analysis tab loads for the first time,
+**When** the form renders,
+**Then** it displays an inheritance notice: "Using generation from Solar tab: X kWh/year (calculated at [timestamp])"
+
+**Given** the Cost Analysis tab loads for the first time,
+**When** the form renders,
+**Then** it pre-fills with Italian defaults: system cost = €1,800/kW × capacity_kw, electricity price = €0.32/kWh, feed-in tariff = €0.12/kWh, lifespan = 25 years, degradation = 0.5%/year
+
+**Given** valid inputs in both Solar and Cost forms,
+**When** I click Simulate on the Cost tab,
+**Then** `simulateSolar()` is called with a payload containing all solar fields plus all five cost fields
+
+**Given** a successful cost analysis response,
+**When** the results arrive,
+**Then** result cards display: Year 1 Annual Savings (€), Break-even Year (or "No payback within 25 years"), 25-Year Total Savings (€) — all formatted to 2 decimal places
+
+**Given** a successful cost analysis response,
+**When** the results arrive,
+**Then** a line chart renders showing cumulative savings over 25 years with a horizontal baseline at system cost and intersection point marked at break-even year
+
+**Given** a successful cost analysis response,
+**When** the results arrive,
+**Then** a bar chart renders showing annual savings per year (1–25), with values declining due to panel degradation
+
+**Given** an invalid cost field value (e.g., lifespan < 5 years),
+**When** the server returns a 422 error,
+**Then** the error message appears inline next to the relevant cost form field — not as a generic alert
+
+**Given** I switch from Cost tab to Solar tab and back,
+**When** I return to Cost tab after a simulation,
+**Then** the charts and result cards retain their last values — no re-fetch on tab switch
+
+---
+
+### Story 2.6: Cost Analysis Testing & Validation
+
+As a developer,
+I want comprehensive unit tests for the cost module and integration tests for cost API fields,
+So that cost analysis calculations are thoroughly tested and financial projections are accurate.
+
+**Acceptance Criteria:**
+
+**Given** I run pytest with coverage for the cost module
+**When** the tests complete
+**Then** coverage report shows ≥80% for cost.py
+
+**And** all tests in test_cost.py pass
+
+**And** test patterns cover: Year 1 calculation accuracy, degradation curve validation (Year 25 ≈ 12% loss), break-even detection, no-break-even case, edge cases (zero generation, zero consumption)
+
+**And** pytest is run with: pytest --cov=app --cov-fail-under=80
+
+**Given** I run integration tests for the /simulate endpoint with cost fields,
+**When** I send a request with cost parameters,
+**Then** the response includes all cost fields with correct calculations
+
+**Given** I run E2E tests for the Cost Analysis workflow,
+**When** I fill the Cost form and click Simulate,
+**Then** result cards populate correctly and charts render without errors
 
 ---
 

@@ -6,6 +6,7 @@ Main calculation engine orchestrating all solar simulations
 import math
 from datetime import datetime, timedelta
 
+from app.battery import simulate_battery
 from app.constants import (
     AMBIENT_TEMP_AMPLITUDE_C,
     AMBIENT_TEMP_MEAN_C,
@@ -170,8 +171,8 @@ def simulate(input_data: SolarInput) -> SolarOutput:
     # Calculate averages
     average_daily = annual_energy / input_data.duration_days
 
-    # Build response
-    return SolarOutput(
+    # Build solar output
+    solar_output = SolarOutput(
         annual_energy_kwh=round(annual_energy, 1),
         average_daily_kwh=round(average_daily, 2),
         peak_hour_kw=round(peak_hour_kw, 2),
@@ -184,3 +185,23 @@ def simulate(input_data: SolarInput) -> SolarOutput:
         monthly_energy_kwh=[round(x, 1) for x in monthly_totals],
         calculation_date=datetime.utcnow(),
     )
+
+    # Simulate battery if all battery fields provided
+    if input_data.battery_capacity_kwh is not None:
+        solar_output_dict = {
+            "daily_hourly_generation": first_day_profile if first_day_profile else []
+        }
+        battery_params = {
+            "capacity_kwh": input_data.battery_capacity_kwh,
+            "charge_efficiency": input_data.battery_charge_efficiency / 100,
+            "discharge_efficiency": input_data.battery_discharge_efficiency / 100,
+            "daily_load_kwh": input_data.daily_load_kwh,
+            "initial_soc_pct": input_data.initial_soc_pct,
+        }
+        battery_result = simulate_battery(solar_output_dict, battery_params)
+        solar_output.battery_hourly_soc = [round(x, 2) for x in battery_result["battery_hourly_soc"]]
+        solar_output.self_consumption_pct = round(battery_result["self_consumption_pct"], 1)
+        solar_output.grid_export_kwh = round(battery_result["grid_export_kwh"], 2)
+        solar_output.grid_import_kwh = round(battery_result["grid_import_kwh"], 2)
+
+    return solar_output

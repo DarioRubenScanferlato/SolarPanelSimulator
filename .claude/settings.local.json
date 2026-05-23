@@ -39,7 +39,8 @@
       "Bash(curl -s -X POST http://localhost:8000/simulate -H 'Content-Type: application/json' -d '{ *)",
       "Bash(npm test *)",
       "Bash(npm install *)",
-      "Bash(uv add *)"
+      "Bash(uv add *)",
+      "Bash(uv run *)"
     ]
   }
 }
