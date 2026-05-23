@@ -5,8 +5,11 @@ REST API for solar energy production simulation
 
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from app.calculator import simulate
 from app.models import SolarInput, SolarOutput
@@ -14,24 +17,29 @@ from app.validation import validate_input
 
 load_dotenv()
 
+env = os.getenv("ENV", "development")
+allowed_origins = os.getenv(
+    "ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
+).split(",")
+rate_limit_per_minute = int(os.getenv("RATE_LIMIT_PER_MINUTE", "10"))
+
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(
     title="Solar Panel Simulator API",
     description="Calculate solar panel energy production and savings",
     version="1.0.0",
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-env = os.getenv("ENV", "development")
-allowed_origins = os.getenv(
-    "ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
-).split(",")
-
-# Enable CORS for frontend (configurable per environment)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_credentials=env != "production",
+    allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
+    max_age=600,
 )
 
 
@@ -42,13 +50,13 @@ async def health_check():
 
 
 @app.post("/simulate", response_model=SolarOutput, tags=["simulation"])
-async def simulate_solar_system(input_data: SolarInput):
+@limiter.limit(f"{rate_limit_per_minute}/minute")
+async def simulate_solar_system(request: Request, input_data: SolarInput):
     """
     Simulate solar panel energy production.
 
-    Takes solar system parameters and returns annual/daily/monthly energy metrics.
+    Rate limited per IP (configured via RATE_LIMIT_PER_MINUTE, default 10/minute).
     """
-    # Validate input
     validation_errors = validate_input(input_data)
     if validation_errors:
         raise HTTPException(
@@ -57,7 +65,6 @@ async def simulate_solar_system(input_data: SolarInput):
         )
 
     try:
-        # Run simulation
         result = simulate(input_data)
         return result
     except Exception as e:

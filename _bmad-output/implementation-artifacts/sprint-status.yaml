@@ -36,7 +36,7 @@ development_status:
   epic-3: in-progress
   3-1-environment-management-system-backend: done
   3-2-environment-management-system-frontend-docker: review
-  3-3-cors-hardening-rate-limiting: ready-for-dev
+  3-3-cors-hardening-rate-limiting: in-progress
   3-4-error-masking-security-headers: ready-for-dev
   3-5-deployment-https-documentation: ready-for-dev
   3-6-unit-testing-framework-battery-tests: ready-for-dev

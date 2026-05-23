@@ -8,6 +8,7 @@ dependencies = [
     "uvicorn[standard]==0.24.0",
     "pydantic==2.5.0",
     "python-dotenv==1.0.0",
+    "slowapi==0.1.9",
 ]
 
 [project.optional-dependencies]
@@ -27,3 +28,10 @@ ignore = ["E501"]  # Line too long (handled by formatter)
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
+
+[dependency-groups]
+dev = [
+    "httpx==0.25.2",
+    "pytest==7.4.3",
+    "pytest-cov==4.1.0",
+]

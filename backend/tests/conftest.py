@@ -5,6 +5,18 @@ from datetime import datetime
 from app.models import SolarInput
 
 
+@pytest.fixture(autouse=True)
+def reset_rate_limiter():
+    """Clear rate limiter storage before each test to prevent bleed-over."""
+    from app.main import limiter
+    storage = limiter._storage
+    if hasattr(storage, "storage") and isinstance(storage.storage, dict):
+        storage.storage.clear()
+    yield
+    if hasattr(storage, "storage") and isinstance(storage.storage, dict):
+        storage.storage.clear()
+
+
 @pytest.fixture
 def turin_location():
     """Standard test location (Turin, Italy) with known solar data."""

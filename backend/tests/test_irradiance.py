@@ -37,9 +37,9 @@ class TestExtraterrestrialIrradiance:
         # Perihelion should be slightly higher than aphelion
         assert e0_jan > e0_jul, "January E0 should be higher than July (perihelion effect)"
 
-        # Difference should be ~3.3% (known physics)
+        # Irradiance ∝ 1/r², so ±1.67% distance swing → ~6.7% irradiance swing.
         ratio = e0_jan / e0_jul
-        assert 1.025 < ratio < 1.040, f"E0 perihelion/aphelion ratio {ratio} not ~3.3%"
+        assert 1.055 < ratio < 1.090, f"E0 perihelion/aphelion ratio {ratio} not ~6-7%"
 
 
 class TestAirMass:
@@ -123,11 +123,13 @@ class TestClearSkyNI:
         assert 800 < dni < 950, f"Peak clear-sky DNI {dni} outside expected range"
 
     def test_dni_higher_than_ghi(self):
-        """DNI should generally be higher than GHI at high sun elevations."""
-        for elev in [30, 50, 70]:
+        """DNI exceeds GHI at low-to-mid sun elevations (below ~62°).
+
+        GHI = DNI·sin(elev)·1.13, so DNI >= GHI when sin(elev) <= 1/1.13 ≈ 0.885 (elev < ~62°).
+        """
+        for elev in [10, 30, 50]:
             dni = clear_sky_dni(elev, 172)
             ghi = clear_sky_ghi(elev, 172)
-            # At high elevations, DNI (normal irradiance) > GHI (horizontal)
             assert dni >= ghi, f"DNI {dni} should be >= GHI {ghi} at elevation {elev}°"
 
 

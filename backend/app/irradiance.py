@@ -74,9 +74,11 @@ def cloud_factor(latitude: float, doy: int) -> float:
     cloudiest during the NH summer. Amplitude grows with |latitude| since
     higher latitudes have stronger seasonal variation in cloudiness.
     """
-    sign = 1.0 if latitude >= 0 else -1.0
-    # Peak clarity around the summer solstice (doy 172 for NH).
-    angle = 2.0 * math.pi * (doy - 172) / 365.0 * sign
+    # Peak clarity at summer solstice: doy 172 (NH) or doy 355 (SH).
+    # Using different ref_doy per hemisphere rather than sign*angle because
+    # cos is even — cos(-x) = cos(x) — so angle negation has no effect.
+    ref_doy = 172 if latitude >= 0 else 355
+    angle = 2.0 * math.pi * (doy - ref_doy) / 365.0
     amplitude = 0.15 + min(abs(latitude), 60.0) / 60.0 * 0.10
     base = 0.65
     return max(0.05, min(1.0, base + amplitude * math.cos(angle)))

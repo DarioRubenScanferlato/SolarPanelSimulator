@@ -377,7 +377,6 @@ class TestCORSHeaders:
     def test_health_cors_headers(self, client):
         """GET /health should include CORS headers."""
         response = client.get("/health")
-        # TestClient automatically handles CORS from FastAPI CORSMiddleware
         assert response.status_code == 200
 
     def test_simulate_cors_headers(self, client, default_solar_input):
@@ -385,3 +384,89 @@ class TestCORSHeaders:
         payload = default_solar_input.model_dump()
         response = client.post("/simulate", json=payload)
         assert response.status_code == 200
+
+    def test_cors_preflight_allowed_origin(self, client):
+        """OPTIONS preflight from allowed origin returns Access-Control-Allow-Origin."""
+        response = client.options(
+            "/simulate",
+            headers={
+                "Origin": "http://localhost:3000",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "Content-Type",
+            },
+        )
+        assert response.status_code == 200
+        assert response.headers.get("access-control-allow-origin") == "http://localhost:3000"
+
+    def test_cors_preflight_explicit_methods(self, client):
+        """OPTIONS preflight should list only GET and POST, not wildcard."""
+        response = client.options(
+            "/simulate",
+            headers={
+                "Origin": "http://localhost:3000",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "Content-Type",
+            },
+        )
+        allow_methods = response.headers.get("access-control-allow-methods", "")
+        assert "*" not in allow_methods
+        assert "POST" in allow_methods or "GET" in allow_methods
+
+    def test_cors_preflight_explicit_headers(self, client):
+        """OPTIONS preflight should allow Content-Type, not wildcard."""
+        response = client.options(
+            "/simulate",
+            headers={
+                "Origin": "http://localhost:3000",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "Content-Type",
+            },
+        )
+        allow_headers = response.headers.get("access-control-allow-headers", "")
+        assert "*" not in allow_headers
+        assert "content-type" in allow_headers.lower()
+
+    def test_cors_credentials_not_allowed(self, client):
+        """CORS should NOT expose access-control-allow-credentials: true."""
+        response = client.options(
+            "/simulate",
+            headers={
+                "Origin": "http://localhost:3000",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "Content-Type",
+            },
+        )
+        allow_creds = response.headers.get("access-control-allow-credentials", "")
+        assert allow_creds.lower() != "true"
+
+    def test_cors_rejected_for_invalid_origin(self, client):
+        """Origin not in ALLOWED_ORIGINS must not receive ACAO header."""
+        response = client.options(
+            "/simulate",
+            headers={
+                "Origin": "http://evil.example.com",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "Content-Type",
+            },
+        )
+        assert response.headers.get("access-control-allow-origin") != "http://evil.example.com"
+
+
+class TestRateLimiting:
+    """Tests for /simulate rate limiting."""
+
+    def test_rate_limit_allows_requests_within_limit(self, client, default_solar_input):
+        """First 3 requests should succeed (well within 10/minute limit)."""
+        payload = default_solar_input.model_dump()
+        for _ in range(3):
+            response = client.post("/simulate", json=payload)
+            assert response.status_code == 200
+
+    def test_rate_limit_exceeded_returns_429(self, client, default_solar_input):
+        """11th request to /simulate within the same minute should return 429."""
+        payload = default_solar_input.model_dump()
+        for i in range(10):
+            response = client.post("/simulate", json=payload)
+            assert response.status_code == 200, f"Request {i + 1} failed unexpectedly"
+        response = client.post("/simulate", json=payload)
+        assert response.status_code == 429
