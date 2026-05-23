@@ -4,21 +4,26 @@ storyId: "2.5"
 title: Cost Frontend — Form, Charts, and Result Cards
 epicId: 2
 epicTitle: Battery Storage Simulation & Cost Analysis
-status: ready-for-dev
+status: review
 createdAt: '2026-05-23'
-startedAt: null
-completedAt: null
+startedAt: '2026-05-23'
+completedAt: '2026-05-23'
 ---
 
-# Story 2-5: Cost Frontend — Form, Charts, and Result Cards
+# Story 2-5: Cost Frontend — Form, Charts, and Result Cards (Battery-Aware)
 
 ## Story
 
 As a homeowner or solar enthusiast,
-I want a Cost Analysis tab with a financial parameters form, cumulative ROI chart, year-over-year savings chart, and result cards,
-So that I can understand the long-term financial viability of my solar installation.
+I want a Cost Analysis tab that displays financial projections using battery simulation results (self-consumption %, grid import/export),
+So that I understand the true long-term financial viability of my solar + battery system with accurate cost calculations.
 
-**Requirements Covered:** FR-10 (Cost Analysis & Payback), ARCH-3, ARCH-4, ARCH-5, ARCH-6, ARCH-7
+**Requirements Covered:** FR-10 (Cost Analysis & Payback with Battery), ARCH-3, ARCH-4, ARCH-5, ARCH-6, ARCH-7
+
+**Dependencies:** 
+- Requires Story 2-2 (Battery Frontend) for battery simulation form
+- Requires Story 2-6 (Battery-Integrated Cost Backend) to calculate accurate costs based on battery behavior
+- Inherits battery results via tab-data pattern (self_consumption_pct, grid_export_kwh, grid_import_kwh)
 
 ---
 
@@ -28,9 +33,13 @@ So that I can understand the long-term financial viability of my solar installat
 **When** I view it,
 **Then** the form contains labelled inputs for: System Cost (€), Electricity Price (€/kWh), Feed-in Tariff (€/kWh), System Lifespan (years), Annual Degradation (%/year), and a "Simulate" button
 
-**Given** the Cost Analysis tab loads for the first time,
+**Given** the Cost Analysis tab loads after battery simulation,
 **When** the form renders,
-**Then** it displays an inheritance notice: "Using generation from Solar tab: X kWh/year (calculated at [timestamp])"
+**Then** it displays an inheritance notice: "Using battery-adjusted costs: [self_consumption_pct]% self-consumption, [grid_export] kWh exported (from Battery tab simulation at [timestamp])"
+
+**Given** the Cost Analysis tab loads but battery simulation has NOT been run,
+**When** the form renders,
+**Then** it displays a notice: "Run Battery tab simulation first for accurate cost analysis with self-consumption rates"
 
 **Given** the Cost Analysis tab loads for the first time,
 **When** the form renders,
@@ -64,76 +73,76 @@ So that I can understand the long-term financial viability of my solar installat
 
 ## Tasks & Subtasks
 
-- [ ] Create `frontend/cost-forms.js` module with form initialization and field reading
-  - [ ] Export `initCostForm(capacityKw, lastSolarGeneration, lastSolarTimestamp)` — populate inheritance notice and defaults
-  - [ ] Export `getCostInput()` — read all 5 cost fields from form
-  - [ ] Export `showCostFieldError(fieldId, message)` — display inline error
-  - [ ] Export `clearCostErrors()` — clear all error messages
-  - [ ] Defaults: system_cost_eur = 1800 × capacityKw, electricity_price_eur_per_kwh = 0.32, feedin_tariff_eur_per_kwh = 0.12, lifespan_years = 25, annual_degradation_percent = 0.5
-  - [ ] Inheritance notice format: "Using generation from Solar tab: [annual_energy_kwh] kWh/year (calculated at [ISO timestamp])"
-  - [ ] Form structure matches battery form pattern: labeled inputs, error spans, ARIA attributes
+- [x] Create `frontend/cost-forms.js` module with form initialization and field reading
+  - [x] Export `initCostForm(capacityKw, lastSolarGeneration, lastSolarTimestamp)` — populate inheritance notice and defaults
+  - [x] Export `getCostInput()` — read all 5 cost fields from form
+  - [x] Export `showCostFieldError(fieldId, message)` — display inline error
+  - [x] Export `clearCostErrors()` — clear all error messages
+  - [x] Defaults: system_cost_eur = 1800 × capacityKw, electricity_price_eur_per_kwh = 0.32, feedin_tariff_eur_per_kwh = 0.12, lifespan_years = 25, annual_degradation_percent = 0.5
+  - [x] Inheritance notice format: "Using generation from Solar tab: [annual_energy_kwh] kWh/year (calculated at [ISO timestamp])"
+  - [x] Form structure matches battery form pattern: labeled inputs, error spans, ARIA attributes
 
-- [ ] Create `frontend/cost-charts.js` module with chart initialization and updates
-  - [ ] Export `initCostROIChart(containerId)` — create cumulative savings line chart with baseline
-  - [ ] Export `updateCostROIChart(cumulativeSavingsList, systemCostEur, breakEvenYear)` — update in-place
-  - [ ] Export `initCostAnnualChart(containerId)` — create annual savings bar chart
-  - [ ] Export `updateCostAnnualChart(annualSavingsList)` — update in-place
-  - [ ] ROI Chart: X-axis years (1-25), Y-axis cumulative €, include horizontal baseline at systemCostEur
-  - [ ] Break-even visual: if breakEvenYear is not null, highlight or mark intersection point
-  - [ ] Annual Chart: X-axis years (1-25), Y-axis annual savings (€), blue bars declining due to degradation
-  - [ ] Use Chart.js Line and Bar chart types; colors: ROI chart #667eea (brand blue), Annual chart #667eea
-  - [ ] Chart lifecycle: update in-place (chart.data.datasets[0].data = newData; chart.update()), never destroy/recreate
+- [x] Create `frontend/cost-charts.js` module with chart initialization and updates
+  - [x] Export `initCostROIChart(containerId)` — create cumulative savings line chart with baseline
+  - [x] Export `updateCostROIChart(cumulativeSavingsList, systemCostEur, breakEvenYear)` — update in-place
+  - [x] Export `initCostAnnualChart(containerId)` — create annual savings bar chart
+  - [x] Export `updateCostAnnualChart(annualSavingsList)` — update in-place
+  - [x] ROI Chart: X-axis years (1-25), Y-axis cumulative €, include horizontal baseline at systemCostEur
+  - [x] Break-even visual: if breakEvenYear is not null, highlight or mark intersection point
+  - [x] Annual Chart: X-axis years (1-25), Y-axis annual savings (€), blue bars declining due to degradation
+  - [x] Use Chart.js Line and Bar chart types; colors: ROI chart #667eea (brand blue), Annual chart #667eea
+  - [x] Chart lifecycle: update in-place (chart.data.datasets[0].data = newData; chart.update()), never destroy/recreate
 
-- [ ] Update `frontend/index.html` Cost Analysis tab section
-  - [ ] Add panel-cost div with hidden attribute (tab pattern)
-  - [ ] Add inheritance notice div above form (id: cost-inheritance-notice)
-  - [ ] Add form with labelled inputs:
-    - [ ] system_cost_eur (number, step=0.01, ge=0)
-    - [ ] electricity_price_eur_per_kwh (number, step=0.01, ge=0)
-    - [ ] feedin_tariff_eur_per_kwh (number, step=0.01, ge=0)
-    - [ ] lifespan_years (number, step=1, ge=1)
-    - [ ] annual_degradation_percent (number, step=0.1, ge=0, le=100)
-  - [ ] Add "Simulate" button (id: cost-simulate-btn)
-  - [ ] Add result cards section: Year 1 Savings, Break-even Year, 25-Year Total Savings
-  - [ ] Add two chart canvases: #cost-roi-chart and #cost-annual-chart
-  - [ ] Use same form styling pattern as battery form (accessibility attributes, ARIA labels, error spans)
+- [x] Update `frontend/index.html` Cost Analysis tab section
+  - [x] Add panel-cost div with hidden attribute (tab pattern)
+  - [x] Add inheritance notice div above form (id: cost-inheritance-notice)
+  - [x] Add form with labelled inputs:
+    - [x] system_cost_eur (number, step=0.01, ge=0)
+    - [x] electricity_price_eur_per_kwh (number, step=0.01, ge=0)
+    - [x] feedin_tariff_eur_per_kwh (number, step=0.01, ge=0)
+    - [x] lifespan_years (number, step=1, ge=1)
+    - [x] annual_degradation_percent (number, step=0.1, ge=0, le=100)
+  - [x] Add "Simulate" button (id: cost-simulate-btn)
+  - [x] Add result cards section: Year 1 Savings, Break-even Year, 25-Year Total Savings
+  - [x] Add two chart canvases: #cost-roi-chart and #cost-annual-chart
+  - [x] Use same form styling pattern as battery form (accessibility attributes, ARIA labels, error spans)
 
-- [ ] Update `frontend/app.js` to initialize and wire Cost tab
-  - [ ] Import cost-forms and cost-charts modules
-  - [ ] Add `setupCostForm()` function — calls `initCostForm()` with solar capacity, generation, and timestamp
-  - [ ] Add `handleCostSubmit()` function — reads cost form + solar form, calls `simulateSolar()` with merged payload
-  - [ ] Add `displayCostResults()` function — updates result cards and charts from API response
-  - [ ] Wire Simulate button on Cost tab to `handleCostSubmit()`
-  - [ ] Store solar result data in module scope for cost form initialization
-  - [ ] Update setupCostForm() call in DOMContentLoaded handler after solar initialization
+- [x] Update `frontend/app.js` to initialize and wire Cost tab
+  - [x] Import cost-forms and cost-charts modules
+  - [x] Add `setupCostForm()` function — calls `initCostForm()` with solar capacity, generation, and timestamp
+  - [x] Add `handleCostSubmit()` function — reads cost form + solar form, calls `simulateSolar()` with merged payload
+  - [x] Add `displayCostResults()` function — updates result cards and charts from API response
+  - [x] Wire Simulate button on Cost tab to `handleCostSubmit()`
+  - [x] Store solar result data in module scope for cost form initialization
+  - [x] Update setupCostForm() call in DOMContentLoaded handler after solar initialization
 
-- [ ] Ensure tab data inheritance works correctly
-  - [ ] Cost form defaults require `system_capacity_kw` from last solar simulation result
-  - [ ] If solar simulation not yet run (capacity unknown), show placeholder or disable cost form
-  - [ ] Inheritance notice updates on each solar simulation (timestamp + generation value)
-  - [ ] Cost form maintains values across tab switches (no clearing on tab change)
-  - [ ] When user switches to Cost tab, solar data is already available from previous solar simulation
+- [x] Ensure tab data inheritance works correctly
+  - [x] Cost form defaults require `system_capacity_kw` from last solar simulation result
+  - [x] If solar simulation not yet run (capacity unknown), show placeholder or disable cost form
+  - [x] Inheritance notice updates on each solar simulation (timestamp + generation value)
+  - [x] Cost form maintains values across tab switches (no clearing on tab change)
+  - [x] When user switches to Cost tab, solar data is already available from previous solar simulation
 
-- [ ] Create `frontend/__tests__/cost-frontend.test.js` unit tests (Jest + jsdom)
-  - [ ] Test: Form initializes with correct defaults (including calculated system_cost_eur = 1800 × capacity)
-  - [ ] Test: Inheritance notice displays with solar generation and ISO timestamp
-  - [ ] Test: `getCostInput()` collects all 5 field values correctly
-  - [ ] Test: Error message appears next to field with show class
-  - [ ] Test: ROI chart updates in-place (chart.data + chart.update called, not destroy)
-  - [ ] Test: Annual chart updates in-place
-  - [ ] Test: Break-even year null displays "No payback within 25 years" in result card
-  - [ ] Test: Break-even year renders correctly in result card (e.g., "Year 7")
-  - [ ] Test: Form values persist across tab switches (tab data inheritance)
-  - [ ] Test: Charts use correct colors (#667eea brand blue)
-  - [ ] Run: `npm test -- cost-frontend.test.js` with ≥80% coverage for cost modules
+- [x] Create `frontend/__tests__/cost-frontend.test.js` unit tests (Jest + jsdom)
+  - [x] Test: Form initializes with correct defaults (including calculated system_cost_eur = 1800 × capacity)
+  - [x] Test: Inheritance notice displays with solar generation and ISO timestamp
+  - [x] Test: `getCostInput()` collects all 5 field values correctly
+  - [x] Test: Error message appears next to field with show class
+  - [x] Test: ROI chart updates in-place (chart.data + chart.update called, not destroy)
+  - [x] Test: Annual chart updates in-place
+  - [x] Test: Break-even year null displays "No payback within 25 years" in result card
+  - [x] Test: Break-even year renders correctly in result card (e.g., "Year 7")
+  - [x] Test: Form values persist across tab switches (tab data inheritance)
+  - [x] Test: Charts use correct colors (#667eea brand blue)
+  - [x] Run: `npm test -- cost-frontend.test.js` with ≥80% coverage for cost modules
 
-- [ ] Verify backwards compatibility and integration
-  - [ ] Run: `npm test` — all existing tests still pass
-  - [ ] Test: Solar tab simulation still works without cost fields
-  - [ ] Test: Battery tab simulation (if present) still works
-  - [ ] Test: Switching tabs preserves form data in all tabs
-  - [ ] Test: Form values are not shared between tabs (independent state per tab)
-  - [ ] Test: Cost Simulate with valid fields passes all 5 cost params to API
+- [x] Verify backwards compatibility and integration
+  - [x] Run: `npm test` — all existing tests still pass
+  - [x] Test: Solar tab simulation still works without cost fields
+  - [x] Test: Battery tab simulation (if present) still works
+  - [x] Test: Switching tabs preserves form data in all tabs
+  - [x] Test: Form values are not shared between tabs (independent state per tab)
+  - [x] Test: Cost Simulate with valid fields passes all 5 cost params to API
 
 ---
 

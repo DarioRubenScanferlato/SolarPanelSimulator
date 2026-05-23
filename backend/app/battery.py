@@ -45,6 +45,9 @@ def simulate_battery(solar_output: dict, battery_params: dict) -> dict:
     # Initialize state
     soc = (initial_soc_pct / 100) * capacity  # Initial SoC in kWh
     battery_hourly_soc = []
+    hourly_solar_consumption = []
+    hourly_grid_consumption = []
+    hourly_grid_export = []
     total_grid_export = 0.0
     total_grid_import = 0.0
 
@@ -52,6 +55,10 @@ def simulate_battery(solar_output: dict, battery_params: dict) -> dict:
     for hour in range(24):
         available_solar = hourly_solar[hour]
         required_load = hourly_load
+
+        # Track solar consumption: energy directly from solar used for load
+        solar_to_load = min(available_solar, required_load)
+        hourly_solar_consumption.append(solar_to_load)
 
         # Net generation (positive = surplus, negative = deficit)
         net_gen = available_solar - required_load
@@ -75,6 +82,8 @@ def simulate_battery(solar_output: dict, battery_params: dict) -> dict:
         soc = max(0, min(soc, capacity))
 
         battery_hourly_soc.append(soc)
+        hourly_grid_consumption.append(grid_import)
+        hourly_grid_export.append(grid_export)
         total_grid_export += grid_export
         total_grid_import += grid_import
 
@@ -85,6 +94,9 @@ def simulate_battery(solar_output: dict, battery_params: dict) -> dict:
 
     return {
         "battery_hourly_soc": battery_hourly_soc,
+        "battery_hourly_solar_consumption": hourly_solar_consumption,
+        "battery_hourly_grid_consumption": hourly_grid_consumption,
+        "battery_hourly_grid_export": hourly_grid_export,
         "self_consumption_pct": self_consumption_pct,
         "grid_export_kwh": total_grid_export,
         "grid_import_kwh": total_grid_import,

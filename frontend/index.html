@@ -147,9 +147,9 @@
             <section class="tab-panel" id="panel-battery" role="tabpanel" aria-labelledby="tab-battery" hidden>
                 <div id="battery-panel">
                     <!-- Battery form rendered here by battery-forms.js -->
-                    <button type="button" id="batterySimulateBtn" class="btn-primary">Simulate</button>
-                    <div id="batteryFormError" class="alert alert-error" hidden role="alert" aria-live="assertive"></div>
                 </div>
+                <button type="button" id="batterySimulateBtn" class="btn-primary">Simulate</button>
+                <div id="batteryFormError" class="alert alert-error" hidden role="alert" aria-live="assertive"></div>
 
                 <!-- Battery Results Section -->
                 <div class="results-section" id="batteryResultsSection" hidden aria-live="polite" aria-atomic="true">
@@ -179,6 +179,13 @@
                                 <canvas id="battery-soc-chart"></canvas>
                             </div>
                         </div>
+
+                        <div class="chart-box">
+                            <h3>Hourly Energy Breakdown</h3>
+                            <div class="chart-wrapper" role="img" aria-label="Hourly energy flow chart showing solar consumption, grid consumption, and energy sold to grid">
+                                <canvas id="battery-breakdown-chart"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -189,10 +196,57 @@
                 </div>
             </section>
 
-            <!-- Cost Analysis Tab (Placeholder) -->
+            <!-- Cost Analysis Tab -->
             <section class="tab-panel" id="panel-cost-analysis" role="tabpanel" aria-labelledby="tab-cost-analysis" hidden>
-                <h2>Cost Analysis</h2>
-                <p>Cost analysis coming soon...</p>
+                <div id="panel-cost">
+                    <!-- Cost form rendered here by cost-forms.js -->
+                </div>
+                <button type="button" id="costSimulateBtn" class="btn-primary">Simulate</button>
+                <div id="costFormError" class="alert alert-error" hidden role="alert" aria-live="assertive"></div>
+
+                <!-- Cost Results Section -->
+                <div class="results-section" id="costResultsSection" hidden aria-live="polite" aria-atomic="true">
+                    <h2>Results</h2>
+
+                    <!-- Cost Result Cards -->
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-value" id="cost-year1-savings-card">-</div>
+                            <div class="card-label">Year 1 Annual Savings (€)</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-value" id="cost-breakeven-card">-</div>
+                            <div class="card-label">Break-even Year</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-value" id="cost-total-25year-card">-</div>
+                            <div class="card-label">25-Year Total Savings (€)</div>
+                        </div>
+                    </div>
+
+                    <!-- Cost Charts -->
+                    <div class="charts-container">
+                        <div class="chart-box">
+                            <h3>Cumulative Savings Over 25 Years</h3>
+                            <div class="chart-wrapper" role="img" aria-label="Cumulative savings chart showing total financial returns over 25 years with system cost baseline">
+                                <canvas id="cost-roi-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-box">
+                            <h3>Annual Savings per Year</h3>
+                            <div class="chart-wrapper" role="img" aria-label="Annual savings chart showing year-by-year financial returns declining due to panel degradation">
+                                <canvas id="cost-annual-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading indicator -->
+                <div id="costLoadingIndicator" class="loading" hidden>
+                    <div class="spinner"></div>
+                    <p>Simulating...</p>
+                </div>
             </section>
         </main>
 

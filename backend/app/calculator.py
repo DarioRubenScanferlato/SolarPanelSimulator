@@ -201,6 +201,9 @@ def simulate(input_data: SolarInput) -> SolarOutput:
         }
         battery_result = simulate_battery(solar_output_dict, battery_params)
         solar_output.battery_hourly_soc = [round(x, 2) for x in battery_result["battery_hourly_soc"]]
+        solar_output.battery_hourly_solar_consumption = [round(x, 3) for x in battery_result["battery_hourly_solar_consumption"]]
+        solar_output.battery_hourly_grid_consumption = [round(x, 3) for x in battery_result["battery_hourly_grid_consumption"]]
+        solar_output.battery_hourly_grid_export = [round(x, 3) for x in battery_result["battery_hourly_grid_export"]]
         solar_output.self_consumption_pct = round(battery_result["self_consumption_pct"], 1)
         solar_output.grid_export_kwh = round(battery_result["grid_export_kwh"], 2)
         solar_output.grid_import_kwh = round(battery_result["grid_import_kwh"], 2)

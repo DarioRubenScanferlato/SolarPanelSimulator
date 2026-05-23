@@ -1,6 +1,6 @@
 # Sprint Status for bmad-solar-panels
 # generated: 2026-05-22
-# last_updated: 2026-05-23 (Stories 2-6, 2-7, 2-8 created; 4 stories ready for development in Epic 2)
+# last_updated: 2026-05-23 (Story 2-5 implementation complete; ready for code review)
 # project: bmad-solar-panels
 # project_key: NOKEY
 # tracking_system: file-system
@@ -53,8 +53,8 @@ development_status:
   2-2-battery-frontend-form-chart-and-result-cards: review
   2-3-unit-testing-framework-and-battery-tests: review
   2-4-cost-backend-roi-module-api-extension: review
-  2-5-cost-frontend-form-charts-and-result-cards: ready-for-dev
+  2-5-cost-frontend-form-charts-and-result-cards: review
   2-6-battery-integrated-cost-analysis-and-testing: ready-for-dev
-  2-7-battery-hourly-energy-breakdown-visualization: ready-for-dev
+  2-7-battery-hourly-energy-breakdown-visualization: review
   2-8-battery-yearly-consumption-analysis-graph: ready-for-dev
   epic-2-retrospective: optional

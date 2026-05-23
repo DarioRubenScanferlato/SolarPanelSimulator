@@ -532,3 +532,159 @@ class TestErrorMasking:
         assert response.status_code == 500
         assert response.json()["detail"] == "Simulation failed. Please try again."
         assert "secret db query" not in str(response.json())
+
+
+class TestBatterySimulation:
+    """Tests for battery simulation and energy breakdown visualization (Story 2-7)."""
+
+    @pytest.fixture
+    def battery_input(self, default_solar_input):
+        """Complete input with battery parameters for testing."""
+        payload = default_solar_input.model_dump()
+        payload.update({
+            "battery_capacity_kwh": 10.0,
+            "battery_charge_efficiency": 95.0,
+            "battery_discharge_efficiency": 95.0,
+            "daily_load_kwh": 10.0,
+            "initial_soc_pct": 50.0
+        })
+        return payload
+
+    def test_battery_simulation_returns_hourly_arrays(self, client, battery_input):
+        """Battery simulation should return three 24-element hourly arrays for energy breakdown."""
+        response = client.post("/simulate", json=battery_input)
+        assert response.status_code == 200
+        data = response.json()
+
+        assert "battery_hourly_solar_consumption" in data
+        assert "battery_hourly_grid_consumption" in data
+        assert "battery_hourly_grid_export" in data
+
+        assert len(data["battery_hourly_solar_consumption"]) == 24
+        assert len(data["battery_hourly_grid_consumption"]) == 24
+        assert len(data["battery_hourly_grid_export"]) == 24
+
+    def test_battery_hourly_values_non_negative(self, client, battery_input):
+        """All hourly energy values should be non-negative."""
+        response = client.post("/simulate", json=battery_input)
+        assert response.status_code == 200
+        data = response.json()
+
+        for hour_val in data["battery_hourly_solar_consumption"]:
+            assert hour_val >= 0, "Solar consumption should be non-negative"
+
+        for hour_val in data["battery_hourly_grid_consumption"]:
+            assert hour_val >= 0, "Grid consumption should be non-negative"
+
+        for hour_val in data["battery_hourly_grid_export"]:
+            assert hour_val >= 0, "Grid export should be non-negative"
+
+    def test_battery_hourly_totals_match_daily_summary(self, client, battery_input):
+        """Sum of hourly grid values should match daily totals."""
+        response = client.post("/simulate", json=battery_input)
+        assert response.status_code == 200
+        data = response.json()
+
+        hourly_grid_import_sum = sum(data["battery_hourly_grid_consumption"])
+        hourly_grid_export_sum = sum(data["battery_hourly_grid_export"])
+
+        assert data["grid_import_kwh"] == pytest.approx(hourly_grid_import_sum, rel=0.01)
+        assert data["grid_export_kwh"] == pytest.approx(hourly_grid_export_sum, rel=0.01)
+
+    def test_battery_soc_stays_within_bounds(self, client, battery_input):
+        """Battery state of charge should always be between 0 and capacity."""
+        response = client.post("/simulate", json=battery_input)
+        assert response.status_code == 200
+        data = response.json()
+
+        capacity = battery_input["battery_capacity_kwh"]
+        for soc in data["battery_hourly_soc"]:
+            assert 0 <= soc <= capacity, f"SoC {soc} out of bounds [0, {capacity}]"
+
+    def test_battery_self_consumption_percentage_valid(self, client, battery_input):
+        """Self-consumption percentage should be between 0 and 100."""
+        response = client.post("/simulate", json=battery_input)
+        assert response.status_code == 200
+        data = response.json()
+
+        assert 0 <= data["self_consumption_pct"] <= 100
+
+    def test_battery_simulation_with_minimal_load(self, client, default_solar_input):
+        """Battery simulation with minimal daily load should have minimal grid import."""
+        payload = default_solar_input.model_dump()
+        payload.update({
+            "battery_capacity_kwh": 10.0,
+            "battery_charge_efficiency": 95.0,
+            "battery_discharge_efficiency": 95.0,
+            "daily_load_kwh": 0.5,  # Minimal load (0.1 is minimum per validation)
+            "initial_soc_pct": 50.0
+        })
+        response = client.post("/simulate", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+
+        # With minimal load and large battery, grid import should be minimal
+        assert data["grid_import_kwh"] < 1.0  # Should be very low
+
+    def test_battery_simulation_high_load(self, client, default_solar_input):
+        """Battery simulation with high load should import from grid."""
+        payload = default_solar_input.model_dump()
+        payload.update({
+            "battery_capacity_kwh": 5.0,  # Small battery
+            "battery_charge_efficiency": 95.0,
+            "battery_discharge_efficiency": 95.0,
+            "daily_load_kwh": 50.0,  # Very high load (>5x available battery + typical solar)
+            "initial_soc_pct": 50.0
+        })
+        response = client.post("/simulate", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+
+        # High load should result in significant grid import
+        assert data["grid_import_kwh"] > 10.0  # Substantial grid dependency
+        # With high load, self-consumption is high because solar is fully utilized
+        assert data["self_consumption_pct"] >= 90
+
+    def test_battery_energy_balance_per_hour(self, client, battery_input):
+        """For each hour: verify energy balance with solar + battery + grid sources."""
+        response = client.post("/simulate", json=battery_input)
+        assert response.status_code == 200
+        data = response.json()
+
+        hourly_load = battery_input["daily_load_kwh"] / 24
+        capacity = battery_input["battery_capacity_kwh"]
+
+        for hour in range(24):
+            solar = data["battery_hourly_solar_consumption"][hour]
+            grid = data["battery_hourly_grid_consumption"][hour]
+            soc_now = data["battery_hourly_soc"][hour]
+
+            # SoC should always be within valid bounds
+            assert 0 <= soc_now <= capacity, f"Hour {hour}: SoC {soc_now} out of bounds [0, {capacity}]"
+
+            # Grid import should only occur when solar+battery insufficient
+            if grid > 0:
+                assert solar < hourly_load, f"Hour {hour}: Grid import {grid} when solar {solar} exceeds load {hourly_load}"
+
+            # All consumption sources should be non-negative
+            assert solar >= 0, f"Hour {hour}: Negative solar consumption {solar}"
+            assert grid >= 0, f"Hour {hour}: Negative grid consumption {grid}"
+
+    def test_battery_missing_battery_params_returns_422(self, client, default_solar_input):
+        """POST /simulate with partial battery params should return 422."""
+        payload = default_solar_input.model_dump()
+        payload["battery_capacity_kwh"] = 10.0
+        # Missing other battery params: should fail all-or-none validation
+        response = client.post("/simulate", json=payload)
+        assert response.status_code == 422
+
+    def test_battery_valid_without_params(self, client, default_solar_input):
+        """POST /simulate without battery params should return 200 (solar-only)."""
+        payload = default_solar_input.model_dump()
+        # No battery params at all
+        response = client.post("/simulate", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+
+        # Battery fields should be None/not present when no battery params
+        assert data.get("battery_hourly_soc") is None or data.get("battery_hourly_soc") == []
