@@ -1,6 +1,6 @@
 # Sprint Status for bmad-solar-panels
 # generated: 2026-05-22
-# last_updated: 2026-05-23
+# last_updated: 2026-05-23 (Stories 3-10, 3-11, 3-12 completed; code review patches applied)
 # project: bmad-solar-panels
 # project_key: NOKEY
 # tracking_system: file-system
@@ -42,9 +42,9 @@ development_status:
   3-7-integration-testing-and-security-tests: review
   3-8-e2e-testing-framework-setup-playwright: review
   3-9-e2e-test-implementation-solar-workflow: review
-  3-10-semantic-html-aria-improvements: ready-for-dev
-  3-11-keyboard-navigation-screen-reader-support: ready-for-dev
-  3-12-accessibility-audit-color-contrast-fixes: ready-for-dev
+  3-10-semantic-html-aria-improvements: done
+  3-11-keyboard-navigation-screen-reader-support: done
+  3-12-accessibility-audit-and-color-contrast-fixes: done
   epic-3-retrospective: optional
 
   # Epic 2: Battery Storage Simulation (deferred until Epic 3 complete)

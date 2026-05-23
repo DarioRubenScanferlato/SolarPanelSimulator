@@ -1,5 +1,5 @@
 // ES6 module imports
-import { switchTab } from './tabs.js';
+import { switchTab, initTabKeyboard } from './tabs.js';
 import { simulateSolar } from './api.js';
 import {
     loadDefaults,
@@ -34,6 +34,9 @@ function setupTabs() {
         });
     });
 
+    // Initialize keyboard navigation (Arrow keys)
+    initTabKeyboard();
+
     // Initialize to Solar tab
     switchTab('solar');
 }
@@ -55,16 +58,16 @@ async function handleSubmit(e) {
 
     // Clear previous errors and results
     clearErrors();
-    document.getElementById('formError').style.display = 'none';
-    document.getElementById('loadingIndicator').style.display = 'flex';
-    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('formError').hidden = true;
+    document.getElementById('loadingIndicator').hidden = false;
+    document.getElementById('resultsSection').hidden = true;
 
     // Get form data and call API
     const payload = readSolarForm();
     const result = await simulateSolar(payload);
 
     // Hide loading indicator
-    document.getElementById('loadingIndicator').style.display = 'none';
+    document.getElementById('loadingIndicator').hidden = true;
 
     // Handle response
     if (result.error) {
@@ -114,7 +117,9 @@ function displayResults(data) {
     // Update yearly chart
     updateYearlyChart(data.monthly_energy_kwh);
 
-    // Show results
-    document.getElementById('resultsSection').style.display = 'block';
+    // Show results (use microtask to ensure screen readers detect changes)
+    Promise.resolve().then(() => {
+        document.getElementById('resultsSection').hidden = false;
+    });
     document.querySelector('main').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }

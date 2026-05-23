@@ -289,6 +289,35 @@ footer code {
     font-family: 'Courier New', monospace;
 }
 
+/* Keyboard Navigation Focus Indicators */
+/* Visible focus outline for all interactive elements for keyboard users */
+.tab-btn:focus,
+.tab-btn:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.btn-primary:focus,
+.btn-primary:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Enhanced focus indicator for form inputs */
+.form-group input:focus,
+.form-group input:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+/* Ensure buttons are always keyboard focusable */
+button {
+    transition: outline 0.1s;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {

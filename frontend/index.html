@@ -15,85 +15,89 @@
         </header>
 
         <main>
-            <!-- Tab Navigation -->
-            <nav class="tab-nav">
-                <button class="tab-btn tab-active" data-tab="solar">Solar Simulation</button>
-                <button class="tab-btn" data-tab="battery">Battery Simulation</button>
-                <button class="tab-btn" data-tab="cost-analysis">Cost Analysis</button>
+            <!-- Tab Navigation: role="tablist" enables screen reader announcement of tab pattern
+                 - Each button has role="tab" to identify as a tab control
+                 - aria-selected="true/false" announces which tab is active
+                 - aria-controls="panel-{id}" links tabs to their corresponding panels -->
+            <nav class="tab-nav" role="tablist">
+                <button class="tab-btn tab-active" data-tab="solar" id="tab-solar" role="tab" aria-selected="true" aria-controls="panel-solar">Solar Simulation</button>
+                <button class="tab-btn" data-tab="battery" id="tab-battery" role="tab" aria-selected="false" aria-controls="panel-battery">Battery Simulation</button>
+                <button class="tab-btn" data-tab="cost-analysis" id="tab-cost-analysis" role="tab" aria-selected="false" aria-controls="panel-cost-analysis">Cost Analysis</button>
             </nav>
 
-            <!-- Tab Panels -->
-            <section class="tab-panel" id="panel-solar">
+            <!-- Tab Panels: role="tabpanel" enables screen reader announcement of panel content -->
+            <section class="tab-panel" id="panel-solar" role="tabpanel" aria-labelledby="tab-solar">
                 <!-- Input Form -->
-                <section class="form-section">
+                <div class="form-section">
                 <h2>System Parameters</h2>
                 <form id="simulatorForm">
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="latitude">Latitude (°)</label>
-                            <input type="number" id="latitude" name="latitude" min="-90" max="90" step="any" required>
-                            <span class="error"></span>
+                            <input type="number" id="latitude" name="latitude" min="-90" max="90" step="any" required aria-required="true" aria-describedby="error-latitude">
+                            <span class="error" id="error-latitude"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="longitude">Longitude (°)</label>
-                            <input type="number" id="longitude" name="longitude" min="-180" max="180" step="any" required>
-                            <span class="error"></span>
+                            <input type="number" id="longitude" name="longitude" min="-180" max="180" step="any" required aria-required="true" aria-describedby="error-longitude">
+                            <span class="error" id="error-longitude"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="panelCount">Panel Count</label>
-                            <input type="number" id="panelCount" name="panelCount" min="1" step="1" required>
-                            <span class="error"></span>
+                            <input type="number" id="panelCount" name="panelCount" min="1" step="1" required aria-required="true" aria-describedby="error-panelCount">
+                            <span class="error" id="error-panelCount"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="panelArea">Panel Area (m²)</label>
-                            <input type="number" id="panelArea" name="panelArea" min="0.1" step="0.1" required>
-                            <span class="error"></span>
+                            <input type="number" id="panelArea" name="panelArea" min="0.1" step="0.1" required aria-required="true" aria-describedby="error-panelArea">
+                            <span class="error" id="error-panelArea"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="efficiency">Efficiency (%)</label>
-                            <input type="number" id="efficiency" name="efficiency" min="5" max="25" step="0.1" required>
-                            <span class="error"></span>
+                            <input type="number" id="efficiency" name="efficiency" min="5" max="25" step="0.1" required aria-required="true" aria-describedby="error-efficiency">
+                            <span class="error" id="error-efficiency"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="tiltAngle">Tilt Angle (°)</label>
-                            <input type="number" id="tiltAngle" name="tiltAngle" min="0" max="90" step="0.1" required>
-                            <span class="error"></span>
+                            <input type="number" id="tiltAngle" name="tiltAngle" min="0" max="90" step="0.1" required aria-required="true" aria-describedby="error-tiltAngle">
+                            <span class="error" id="error-tiltAngle"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="azimuth">Azimuth (°)</label>
-                            <input type="number" id="azimuth" name="azimuth" min="0" max="360" step="0.1" required>
-                            <span class="error"></span>
+                            <input type="number" id="azimuth" name="azimuth" min="0" max="360" step="0.1" required aria-required="true" aria-describedby="error-azimuth">
+                            <span class="error" id="error-azimuth"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="startDate">Start Date</label>
-                            <input type="date" id="startDate" name="startDate" required>
-                            <span class="error"></span>
+                            <input type="date" id="startDate" name="startDate" required aria-required="true" aria-describedby="error-startDate">
+                            <span class="error" id="error-startDate"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="duration">Duration (days)</label>
-                            <input type="number" id="duration" name="duration" min="1" step="1" required>
-                            <span class="error"></span>
+                            <input type="number" id="duration" name="duration" min="1" step="1" required aria-required="true" aria-describedby="error-duration">
+                            <span class="error" id="error-duration"></span>
                         </div>
                     </div>
 
                     <button type="submit" id="simulateBtn" class="btn-primary">Simulate</button>
-                    <div id="formError" class="alert alert-error" style="display: none;"></div>
+                    <!-- Form-level error alert with aria-live for immediate announcement -->
+                    <div id="formError" class="alert alert-error" hidden role="alert" aria-live="assertive"></div>
                 </form>
-            </section>
+            </div>
 
-            <!-- Results Section -->
-            <section class="results-section" id="resultsSection" style="display: none;">
+            <!-- Results Section: aria-live="polite" announces updates to screen readers -->
+            <div class="results-section" id="resultsSection" hidden aria-live="polite" aria-atomic="true">
                 <h2>Results</h2>
 
-                <!-- Summary Cards -->
+                <!-- Summary Cards: Announce all results together when updated -->
                 <div class="cards-grid">
                     <div class="card">
                         <div class="card-value" id="annualEnergy">-</div>
@@ -113,11 +117,11 @@
                     </div>
                 </div>
 
-                <!-- Charts -->
+                <!-- Charts: role="img" with aria-label describes chart for screen readers -->
                 <div class="charts-container">
                     <div class="chart-box">
                         <h3>Daily Generation Profile</h3>
-                        <div class="chart-wrapper">
+                        <div class="chart-wrapper" role="img" aria-label="Daily energy production chart showing hourly power output in kilowatts throughout the day">
                             <canvas id="dailyChart"></canvas>
                         </div>
                         <p class="chart-info" id="dailyInfo">-</p>
@@ -125,28 +129,28 @@
 
                     <div class="chart-box">
                         <h3>Yearly Energy Production</h3>
-                        <div class="chart-wrapper">
+                        <div class="chart-wrapper" role="img" aria-label="Yearly energy production chart showing total kilowatt-hours generated each month">
                             <canvas id="yearlyChart"></canvas>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
 
             <!-- Loading indicator -->
-            <div id="loadingIndicator" class="loading" style="display: none;">
+            <div id="loadingIndicator" class="loading" hidden>
                 <div class="spinner"></div>
                 <p>Simulating...</p>
             </div>
             </section>
 
             <!-- Battery Simulation Tab (Placeholder) -->
-            <section class="tab-panel" id="panel-battery" hidden>
+            <section class="tab-panel" id="panel-battery" role="tabpanel" aria-labelledby="tab-battery" hidden>
                 <h2>Battery Simulation</h2>
                 <p>Battery simulation coming soon...</p>
             </section>
 
             <!-- Cost Analysis Tab (Placeholder) -->
-            <section class="tab-panel" id="panel-cost-analysis" hidden>
+            <section class="tab-panel" id="panel-cost-analysis" role="tabpanel" aria-labelledby="tab-cost-analysis" hidden>
                 <h2>Cost Analysis</h2>
                 <p>Cost analysis coming soon...</p>
             </section>

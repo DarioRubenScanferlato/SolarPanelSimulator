@@ -20,6 +20,13 @@ export function loadDefaults() {
     document.getElementById('azimuth').value = DEFAULTS.azimuth;
     document.getElementById('startDate').value = DEFAULTS.startDate;
     document.getElementById('duration').value = DEFAULTS.duration;
+
+    // Initialize all required inputs with aria-invalid="false" for consistent ARIA state
+    document.querySelectorAll('input[aria-required="true"]').forEach(input => {
+        if (!input.hasAttribute('aria-invalid')) {
+            input.setAttribute('aria-invalid', 'false');
+        }
+    });
 }
 
 export function readSolarForm() {
@@ -44,6 +51,9 @@ export function showFieldError(fieldId, message) {
     if (errorElement) {
         errorElement.textContent = message;
         errorElement.classList.add('show');
+        // Add ARIA attributes to announce error to screen readers
+        input.setAttribute('aria-invalid', 'true');
+        input.setAttribute('aria-describedby', `error-${fieldId}`);
     }
 }
 
@@ -53,6 +63,13 @@ export function clearFieldError(fieldName) {
         const errorElement = input.parentElement.querySelector('.error');
         if (errorElement) {
             errorElement.classList.remove('show');
+            // Clear error text immediately to avoid orphaned aria-describedby references
+            errorElement.textContent = '';
+        }
+        // Synchronize ARIA state: only update if input currently has error state
+        if (input.getAttribute('aria-invalid') === 'true') {
+            input.setAttribute('aria-invalid', 'false');
+            input.removeAttribute('aria-describedby');
         }
     }
 }
@@ -60,6 +77,11 @@ export function clearFieldError(fieldName) {
 export function clearErrors() {
     document.querySelectorAll('.form-group .error').forEach(el => {
         el.classList.remove('show');
+    });
+    // Remove ARIA error attributes from all inputs
+    document.querySelectorAll('input[aria-invalid]').forEach(input => {
+        input.setAttribute('aria-invalid', 'false');
+        input.removeAttribute('aria-describedby');
     });
 }
 
