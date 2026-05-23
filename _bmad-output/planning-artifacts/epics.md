@@ -273,37 +273,23 @@ So that I can model how a battery would affect my solar system's performance.
 
 ---
 
-### Story 2.3: Battery Backend Tests
+### Story 2.3: Unit Testing Framework & Battery Tests
 
 As a developer,
-I want comprehensive tests in `test_battery.py` covering the battery simulation physics and edge cases,
-So that the energy balance model is verified and the >80% coverage gate is maintained.
+I want comprehensive unit tests for the battery module including fixtures, parametrized scenarios, and energy balance invariant checks,
+So that battery simulation logic is thoroughly tested and edge cases are covered.
 
 **Acceptance Criteria:**
 
-**Given** `class TestSimulateBattery` in `test_battery.py`,
-**When** pytest runs,
-**Then** it covers: zero-capacity returns unmodified generation values, full capacity is never exceeded across all 24 hours, SoC is never negative, grid export only occurs when solar surplus exceeds battery charge headroom, grid import only occurs when load exceeds available generation plus battery
+**Given** I run pytest with coverage for the battery module
+**When** the tests complete
+**Then** coverage report shows ≥80% for battery.py
 
-**Given** `class TestCalculateHourlySoc`,
-**When** pytest runs,
-**Then** it covers: charge efficiency reduces net energy stored (stored < surplus), discharge efficiency limits draw (drawn < deficit), SoC is bounded `[0, capacity]` for every hour index 0–23
+**And** all tests in test_battery.py pass
 
-**Given** `class TestSelfConsumption`,
-**When** pytest runs,
-**Then** it covers: 100% self-consumption when daily load ≤ total generation and battery capacity is sufficient; 0% self-consumption when `daily_load_kwh=0`
+**And** test patterns cover edge cases: zero capacity passthrough, SoC never negative, SoC never exceeds capacity, efficiency losses
 
-**Given** the energy balance invariant,
-**When** `test_energy_balance_holds` runs,
-**Then** `grid_import_kwh + self_consumed_kwh == daily_load_kwh` within `abs=1e-6` tolerance
-
-**Given** `pytest --cov=app` runs after adding `test_battery.py`,
-**When** coverage is measured,
-**Then** `battery.py` has ≥ 80% line coverage and overall `app/` coverage remains ≥ 80%
-
-**Given** all existing test files,
-**When** the full test suite runs,
-**Then** zero regressions in `test_solar_position`, `test_irradiance`, `test_calculator`, `test_main`
+**And** pytest is run with: pytest --cov=app --cov-fail-under=80
 
 ---
 
@@ -455,26 +441,6 @@ So that production deployment can be secured with valid certificates.
 **And** a DEPLOYMENT.md file exists with complete setup instructions
 
 **And** a SECURITY.md file exists with security checklist for pre-production launch
-
----
-
-### Story 3-6: Unit Testing Framework & Battery Tests
-
-As a developer,
-I want comprehensive unit tests for the battery module,
-So that battery simulation logic is thoroughly tested and edge cases are covered.
-
-**Acceptance Criteria:**
-
-**Given** I run pytest with coverage for the battery module
-**When** the tests complete
-**Then** coverage report shows ≥80% for battery.py
-
-**And** all tests in test_battery.py pass
-
-**And** test patterns cover edge cases: zero capacity passthrough, SoC never negative, SoC never exceeds capacity, efficiency losses
-
-**And** pytest is run with: pytest --cov=app --cov-fail-under=80
 
 ---
 

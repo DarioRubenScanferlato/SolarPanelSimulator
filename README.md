@@ -34,6 +34,19 @@ Then open in your browser:
 - **Frontend:** http://localhost:3000
 - **Backend API docs:** http://localhost:8000/docs
 
+## Deployment
+
+For production deployment with HTTPS via nginx and Let's Encrypt:
+
+```bash
+cp nginx.conf.example nginx.conf
+# edit nginx.conf — replace solar.yourdomain.com with your domain
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+```
+
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** — full step-by-step guide (DNS, certificates, nginx, docker-compose)
+- **[SECURITY.md](SECURITY.md)** — pre-deployment security checklist
+
 ### Manual Setup
 
 **Backend:**
@@ -138,11 +151,28 @@ Energy (kWh) = Power × Hours / 1000
 
 ## Development
 
-### Running Tests
+### Backend Unit Tests
 ```bash
 cd backend
-pytest tests/test_calculator.py -v
+pytest tests/ -v
+pytest tests/ --cov=app --cov-fail-under=80  # with coverage
 ```
+
+### Integration Tests
+```bash
+cd backend
+pytest tests/test_main_integration.py -v
+```
+
+### E2E Testing (Playwright)
+```bash
+npm run test:e2e              # Run tests in headless mode
+npm run test:e2e:headed       # Run with browser visible (debugging)
+npm run test:e2e:ui           # Interactive test explorer
+npm run test:e2e:debug        # Step through with inspector
+```
+
+Test files are in `frontend/e2e/` and use Playwright for browser automation. See [Playwright docs](https://playwright.dev) for detailed syntax.
 
 ### API Documentation
 When backend is running, visit: http://localhost:8000/docs

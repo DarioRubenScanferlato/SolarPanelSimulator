@@ -1,5 +1,7 @@
 """Integration tests for FastAPI endpoints (/health and /simulate)."""
 
+import unittest.mock
+
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
@@ -470,3 +472,63 @@ class TestRateLimiting:
             assert response.status_code == 200, f"Request {i + 1} failed unexpectedly"
         response = client.post("/simulate", json=payload)
         assert response.status_code == 429
+
+
+class TestSecurityHeaders:
+    """Tests for security headers present on all responses."""
+
+    def test_health_has_all_security_headers(self, client):
+        """GET /health should include all four security headers."""
+        response = client.get("/health")
+        assert response.headers.get("x-content-type-options") == "nosniff"
+        assert response.headers.get("x-frame-options") == "DENY"
+        assert response.headers.get("x-xss-protection") == "1; mode=block"
+        assert response.headers.get("strict-transport-security") == "max-age=31536000"
+
+    def test_simulate_success_has_security_headers(self, client, default_solar_input):
+        """POST /simulate 200 response must include all four security headers."""
+        payload = default_solar_input.model_dump()
+        response = client.post("/simulate", json=payload)
+        assert response.status_code == 200
+        assert response.headers.get("x-content-type-options") == "nosniff"
+        assert response.headers.get("x-frame-options") == "DENY"
+        assert response.headers.get("x-xss-protection") == "1; mode=block"
+        assert response.headers.get("strict-transport-security") == "max-age=31536000"
+
+    def test_simulate_error_has_security_headers(self, client, default_solar_input, monkeypatch):
+        """Security headers must be present even on 500 error responses."""
+        import app.main as main_module
+        monkeypatch.setattr(main_module, "env", "production")
+        with unittest.mock.patch("app.main.simulate", side_effect=RuntimeError("boom")):
+            payload = default_solar_input.model_dump()
+            response = client.post("/simulate", json=payload)
+        assert response.status_code == 500
+        assert response.headers.get("x-content-type-options") == "nosniff"
+        assert response.headers.get("x-frame-options") == "DENY"
+
+
+class TestErrorMasking:
+    """Tests for environment-aware error masking in /simulate."""
+
+    def test_development_error_includes_message_and_traceback(self, client, default_solar_input, monkeypatch):
+        """In development, error detail includes the exception message and full traceback."""
+        import app.main as main_module
+        monkeypatch.setattr(main_module, "env", "development")
+        with unittest.mock.patch("app.main.simulate", side_effect=RuntimeError("division by zero")):
+            payload = default_solar_input.model_dump()
+            response = client.post("/simulate", json=payload)
+        assert response.status_code == 500
+        detail = response.json()["detail"]
+        assert "division by zero" in detail
+        assert "Traceback" in detail
+
+    def test_production_error_is_generic(self, client, default_solar_input, monkeypatch):
+        """In production, error detail is a generic message hiding implementation details."""
+        import app.main as main_module
+        monkeypatch.setattr(main_module, "env", "production")
+        with unittest.mock.patch("app.main.simulate", side_effect=RuntimeError("secret db query")):
+            payload = default_solar_input.model_dump()
+            response = client.post("/simulate", json=payload)
+        assert response.status_code == 500
+        assert response.json()["detail"] == "Simulation failed. Please try again."
+        assert "secret db query" not in str(response.json())

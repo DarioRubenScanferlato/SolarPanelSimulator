@@ -1,16 +1,16 @@
 ---
-storyKey: 3-6-unit-testing-framework-and-battery-tests
-storyId: "3.6"
+storyKey: 2-3-unit-testing-framework-and-battery-tests
+storyId: "2.3"
 title: Unit Testing Framework & Battery Tests
-epicId: 3
-epicTitle: Quality, Reliability & Security
+epicId: 2
+epicTitle: Battery Storage Simulation
 status: ready-for-dev
 createdAt: '2026-05-22'
 startedAt: null
 completedAt: null
 ---
 
-# Story 3-6: Unit Testing Framework & Battery Tests
+# Story 2-3: Unit Testing Framework & Battery Tests
 
 ## Story
 
@@ -114,11 +114,12 @@ The energy balance invariant (grid_import + self_consumption == load) is the fou
 - pytest (already installed)
 - pytest-cov (already installed)
 - No new test dependencies required
+- battery.py (Story 2-1) must exist before this story can be implemented
 
 **Related Stories:**
 - Story 2-1 (Battery Backend) — battery.py must exist before tests
-- Story 2-3 (Battery Tests) — this story is for backend unit tests
-- Story 3-7 (Integration Testing) — includes API-level battery tests
+- Story 2-2 (Battery Frontend) — UI implementation alongside backend
+- Story 2-3 (Battery Backend Tests, epics.md) — this story supersedes/consolidates 2-3
 
 **Files Modified/Created:**
 - `backend/tests/test_battery.py` — NEW, comprehensive battery tests
@@ -157,6 +158,7 @@ The energy balance invariant (grid_import + self_consumption == load) is the fou
 ## Change Log
 
 - 2026-05-22: Story created from Epic 3 specification
+- 2026-05-23: Moved from Epic 3 (story 3-6) to Epic 2 as story 2-3, consolidating with original 2-3
 
 ---
 

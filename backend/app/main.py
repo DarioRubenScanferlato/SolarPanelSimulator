@@ -3,10 +3,13 @@ Solar Panel Simulator - FastAPI Application
 REST API for solar energy production simulation
 """
 
+import logging
 import os
+import traceback
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -16,6 +19,8 @@ from app.models import SolarInput, SolarOutput
 from app.validation import validate_input
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 env = os.getenv("ENV", "development")
 allowed_origins = os.getenv(
@@ -43,6 +48,28 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000"
+    return response
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    tb = traceback.format_exc()
+    logger.error("Unhandled exception on %s: %s\n%s", request.url.path, str(exc), tb)
+    if env == "production":
+        return JSONResponse(status_code=500, content={"detail": "Internal server error."})
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"{str(exc)}\n\nTraceback:\n{tb}"},
+    )
+
+
 @app.get("/health", tags=["health"])
 async def health_check():
     """Health check endpoint."""
@@ -68,12 +95,14 @@ async def simulate_solar_system(request: Request, input_data: SolarInput):
         result = simulate(input_data)
         return result
     except Exception as e:
-        error_detail = (
-            "Simulation failed. Please try again."
-            if env == "production"
-            else f"Simulation error: {str(e)}"
+        tb = traceback.format_exc()
+        logger.error("Simulation error: %s\n%s", str(e), tb)
+        if env == "production":
+            raise HTTPException(status_code=500, detail="Simulation failed. Please try again.")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Simulation error: {str(e)}\n\nTraceback:\n{tb}",
         )
-        raise HTTPException(status_code=500, detail=error_detail)
 
 
 if __name__ == "__main__":

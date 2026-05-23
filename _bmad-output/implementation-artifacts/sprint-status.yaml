@@ -1,6 +1,6 @@
 # Sprint Status for bmad-solar-panels
 # generated: 2026-05-22
-# last_updated: 2026-05-22
+# last_updated: 2026-05-23
 # project: bmad-solar-panels
 # project_key: NOKEY
 # tracking_system: file-system
@@ -36,13 +36,12 @@ development_status:
   epic-3: in-progress
   3-1-environment-management-system-backend: done
   3-2-environment-management-system-frontend-docker: review
-  3-3-cors-hardening-rate-limiting: in-progress
-  3-4-error-masking-security-headers: ready-for-dev
-  3-5-deployment-https-documentation: ready-for-dev
-  3-6-unit-testing-framework-battery-tests: ready-for-dev
-  3-7-integration-testing-security-tests: ready-for-dev
-  3-8-e2e-testing-framework-setup-playwright: ready-for-dev
-  3-9-e2e-test-implementation-solar-workflow: ready-for-dev
+  3-3-cors-hardening-rate-limiting: review
+  3-4-error-masking-security-headers: review
+  3-5-deployment-https-documentation: review
+  3-7-integration-testing-and-security-tests: review
+  3-8-e2e-testing-framework-setup-playwright: review
+  3-9-e2e-test-implementation-solar-workflow: review
   3-10-semantic-html-aria-improvements: ready-for-dev
   3-11-keyboard-navigation-screen-reader-support: ready-for-dev
   3-12-accessibility-audit-color-contrast-fixes: ready-for-dev
@@ -52,5 +51,5 @@ development_status:
   epic-2: backlog
   2-1-battery-backend-physics-model-api-extension-and-httpx-pin: ready-for-dev
   2-2-battery-frontend-form-chart-and-result-cards: ready-for-dev
-  2-3-battery-backend-tests: ready-for-dev
+  2-3-unit-testing-framework-and-battery-tests: ready-for-dev
   epic-2-retrospective: optional
