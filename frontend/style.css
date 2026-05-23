@@ -243,6 +243,11 @@ section h3 {
 }
 
 /* Loading Indicator */
+/* Hide elements with hidden attribute — overrides any display rule */
+[hidden] {
+    display: none !important;
+}
+
 .loading {
     display: flex;
     flex-direction: column;

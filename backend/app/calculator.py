@@ -7,6 +7,7 @@ import math
 from datetime import datetime, timedelta
 
 from app.battery import simulate_battery
+from app.cost import calculate_25year_roi
 from app.constants import (
     AMBIENT_TEMP_AMPLITUDE_C,
     AMBIENT_TEMP_MEAN_C,
@@ -203,5 +204,20 @@ def simulate(input_data: SolarInput) -> SolarOutput:
         solar_output.self_consumption_pct = round(battery_result["self_consumption_pct"], 1)
         solar_output.grid_export_kwh = round(battery_result["grid_export_kwh"], 2)
         solar_output.grid_import_kwh = round(battery_result["grid_import_kwh"], 2)
+
+    # Simulate cost analysis if all cost fields provided
+    if input_data.system_cost_eur is not None:
+        cost_result = calculate_25year_roi(
+            annual_generation_kwh=annual_energy,
+            system_cost_eur=input_data.system_cost_eur,
+            electricity_price=input_data.electricity_price_eur_per_kwh,
+            feedin_tariff=input_data.feedin_tariff_eur_per_kwh,
+            degradation_percent=input_data.annual_degradation_percent,
+            lifespan_years=input_data.lifespan_years
+        )
+        solar_output.cost_year_1_savings = round(cost_result["year_1_savings"], 2)
+        solar_output.cost_breakeven_year = cost_result["breakeven_year"]
+        solar_output.cost_cumulative_savings = [round(x, 2) for x in cost_result["cumulative_savings"]]
+        solar_output.cost_total_25year_savings = round(cost_result["total_25year_savings"], 2)
 
     return solar_output

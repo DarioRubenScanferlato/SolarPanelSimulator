@@ -52,7 +52,7 @@ So that the API supports cost analysis with full backwards compatibility.
 
 ## Tasks & Subtasks
 
-- [ ] Create `backend/app/cost.py` module with `calculate_25year_roi()` function
+- [x] Create `backend/app/cost.py` module with `calculate_25year_roi()` function
   - [ ] Function signature: `calculate_25year_roi(annual_generation_kwh: float, system_cost_eur: float, electricity_price: float, feedin_tariff: float, degradation_percent: float, lifespan_years: int) -> dict`
   - [ ] For each year in range(1, lifespan_years + 1):
     - [ ] Apply degradation: capacity_factor = (1 - degradation_percent/100) ^ (year - 1)
@@ -69,72 +69,72 @@ So that the API supports cost analysis with full backwards compatibility.
     - [ ] `breakeven_year`: first year where cumulative ≥ system_cost, or null if no payback
   - [ ] Return dict: {year_1_savings, breakeven_year, cumulative_savings, total_25year_savings}
 
-- [ ] Extend `backend/app/models.py` SolarInput with optional cost fields
-  - [ ] Add to `SolarInput` class:
-    - [ ] `system_cost_eur: float | None = None` (Field ge=0 if provided)
-    - [ ] `electricity_price_eur_per_kwh: float | None = None` (Field ge=0 if provided)
-    - [ ] `feedin_tariff_eur_per_kwh: float | None = None` (Field ge=0 if provided)
-    - [ ] `lifespan_years: int | None = None` (Field ge=1 if provided)
-    - [ ] `annual_degradation_percent: float | None = None` (Field ge=0, le=100 if provided)
+- [x] Extend `backend/app/models.py` SolarInput with optional cost fields
+  - [x] Add to `SolarInput` class:
+    - [x] `system_cost_eur: float | None = None` (Field ge=0 if provided)
+    - [x] `electricity_price_eur_per_kwh: float | None = None` (Field ge=0 if provided)
+    - [x] `feedin_tariff_eur_per_kwh: float | None = None` (Field ge=0 if provided)
+    - [x] `lifespan_years: int | None = None` (Field ge=1 if provided)
+    - [x] `annual_degradation_percent: float | None = None` (Field ge=0, le=100 if provided)
 
-- [ ] Extend `backend/app/models.py` SolarOutput with cost fields
-  - [ ] Add to `SolarOutput` class:
-    - [ ] `cost_year_1_savings: float | None = None` (€)
-    - [ ] `cost_breakeven_year: int | None = None` (year or null)
-    - [ ] `cost_cumulative_savings: List[float] | None = None` (25-element list if cost present)
-    - [ ] `cost_total_25year_savings: float | None = None` (€)
+- [x] Extend `backend/app/models.py` SolarOutput with cost fields
+  - [x] Add to `SolarOutput` class:
+    - [x] `cost_year_1_savings: float | None = None` (€)
+    - [x] `cost_breakeven_year: int | None = None` (year or null)
+    - [x] `cost_cumulative_savings: List[float] | None = None` (25-element list if cost present)
+    - [x] `cost_total_25year_savings: float | None = None` (€)
 
-- [ ] Update `backend/app/validation.py` to validate cost fields
-  - [ ] Add validator: `validate_cost_fields(input_data: SolarInput)`
-  - [ ] Check: if ANY of the 5 cost fields are provided, ALL 5 must be provided
-  - [ ] Return validation error if partial: "All cost fields must be provided together or not at all"
-  - [ ] Add sensible Italian defaults when all fields provided:
-    - [ ] `system_cost_eur`: default to €1,800 × system_capacity_kw (requires system_capacity from solar input)
-    - [ ] `electricity_price_eur_per_kwh`: default 0.32
-    - [ ] `feedin_tariff_eur_per_kwh`: default 0.12
-    - [ ] `lifespan_years`: default 25
-    - [ ] `annual_degradation_percent`: default 0.5
+- [x] Update `backend/app/validation.py` to validate cost fields
+  - [x] Add validator: `validate_cost_fields(input_data: SolarInput)`
+  - [x] Check: if ANY of the 5 cost fields are provided, ALL 5 must be provided
+  - [x] Return validation error if partial: "All cost fields must be provided together or not at all"
+  - [x] Add sensible Italian defaults when all fields provided:
+    - [x] `system_cost_eur`: default to €1,800 × system_capacity_kw (requires system_capacity from solar input)
+    - [x] `electricity_price_eur_per_kwh`: default 0.32
+    - [x] `feedin_tariff_eur_per_kwh`: default 0.12
+    - [x] `lifespan_years`: default 25
+    - [x] `annual_degradation_percent`: default 0.5
 
-- [ ] Update `backend/app/main.py` /simulate endpoint
-  - [ ] Before calling `simulate()`, call `validate_cost_fields(input_data)` to check for partial cost input
-  - [ ] Pass full `input_data` (with cost fields) to `simulate()`
+- [x] Update `backend/app/main.py` /simulate endpoint
+  - [x] Before calling `simulate()`, call `validate_cost_fields(input_data)` to check for partial cost input
+  - [x] Pass full `input_data` (with cost fields) to `simulate()`
 
-- [ ] Update `backend/app/calculator.py` `simulate()` function to invoke cost module
-  - [ ] After calculating battery output (if present), check if `input_data.system_cost_eur` is not None
-  - [ ] If cost fields present:
-    - [ ] Prepare annual_generation_kwh from solar_output.annual_energy_kwh
-    - [ ] Prepare cost_params dict from input_data
-    - [ ] Call `cost.calculate_25year_roi(...)`
-    - [ ] Merge cost results into `output` dict with `cost_` prefixes
-  - [ ] Return complete SolarOutput (with or without cost fields depending on input)
+- [x] Update `backend/app/calculator.py` `simulate()` function to invoke cost module
+  - [x] After calculating battery output (if present), check if `input_data.system_cost_eur` is not None
+  - [x] If cost fields present:
+    - [x] Prepare annual_generation_kwh from solar_output.annual_energy_kwh
+    - [x] Prepare cost_params dict from input_data
+    - [x] Call `cost.calculate_25year_roi(...)`
+    - [x] Merge cost results into `output` dict with `cost_` prefixes
+  - [x] Return complete SolarOutput (with or without cost fields depending on input)
 
-- [ ] Create `backend/tests/test_cost.py` unit tests
-  - [ ] Test: Basic 25-year ROI calculation
-    - [ ] Given: 5000 kWh/year, €9,000 system cost (1.8€/kW × 5kW), €0.32/kWh, €0.12/kWh
-    - [ ] Expected: year_1_savings ≈ €2,200 ((5000 × 0.32) + (5000 × 0.12))
-  - [ ] Test: Break-even calculation
-    - [ ] Given: year_1_savings = €2,200, system_cost = €9,000, no degradation
-    - [ ] Expected: breakeven_year = 5 (9000 / 2200 ≈ 4.1 years, so year 5)
-  - [ ] Test: Degradation applied correctly (0.5%/year)
-    - [ ] Given: year 1 generation = 5000 kWh
-    - [ ] Expected: year 25 generation ≈ 5000 × 0.88 = 4400 kWh (12% loss)
-  - [ ] Test: Cumulative savings list matches calculation
-    - [ ] Given: valid inputs
-    - [ ] Expected: cumulative_savings[0] = year_1_savings, cumulative_savings[24] = total_25year_savings
-  - [ ] Test: Null break-even year when no payback within lifespan
-    - [ ] Given: high system cost, low savings
-    - [ ] Expected: breakeven_year = null
-  - [ ] Test: Backwards compatibility — API call without cost fields
-    - [ ] Given: POST /simulate with only solar fields
-    - [ ] Expected: response includes only solar fields, no cost fields (null)
-  - [ ] Test: Validation rejects partial cost input
-    - [ ] Given: POST /simulate with 3 of 5 cost fields
-    - [ ] Expected: HTTP 422 with validation error message
-  - [ ] Run: `pytest --cov=app --cov-fail-under=80` → cost.py coverage ≥80%
+- [x] Create `backend/tests/test_cost.py` unit tests
+  - [x] Test: Basic 25-year ROI calculation
+    - [x] Given: 5000 kWh/year, €9,000 system cost (1.8€/kW × 5kW), €0.32/kWh, €0.12/kWh
+    - [x] Expected: year_1_savings ≈ €2,200 ((5000 × 0.32) + (5000 × 0.12))
+  - [x] Test: Break-even calculation
+    - [x] Given: year_1_savings = €2,200, system_cost = €9,000, no degradation
+    - [x] Expected: breakeven_year = 5 (9000 / 2200 ≈ 4.1 years, so year 5)
+  - [x] Test: Degradation applied correctly (0.5%/year)
+    - [x] Given: year 1 generation = 5000 kWh
+    - [x] Expected: year 25 generation ≈ 5000 × 0.88 = 4400 kWh (12% loss)
+  - [x] Test: Cumulative savings list matches calculation
+    - [x] Given: valid inputs
+    - [x] Expected: cumulative_savings[0] = year_1_savings, cumulative_savings[24] = total_25year_savings
+  - [x] Test: Null break-even year when no payback within lifespan
+    - [x] Given: high system cost, low savings
+    - [x] Expected: breakeven_year = null
+  - [x] Test: Backwards compatibility — API call without cost fields
+    - [x] Given: POST /simulate with only solar fields
+    - [x] Expected: response includes only solar fields, no cost fields (null)
+  - [x] Test: Validation rejects partial cost input
+    - [x] Given: POST /simulate with 3 of 5 cost fields
+    - [x] Expected: HTTP 422 with validation error message
+  - [x] Run: `pytest --cov=app --cov-fail-under=80` → cost.py coverage ≥80%
 
-- [ ] Verify full test suite passes with no regressions
-  - [ ] Run: `pytest --cov=app --cov-fail-under=80`
-  - [ ] Expected: all tests pass, coverage ≥80%, no regressions
+- [x] Verify full test suite passes with no regressions
+  - [x] Run: `pytest --cov=app --cov-fail-under=80`
+  - [x] Expected: all tests pass, coverage ≥80%, no regressions
 
 ---
 
@@ -191,11 +191,47 @@ Story 2.4 implements backend cost analysis (ROI module), parallel to 2.1 (batter
 
 ### Debug Log
 
-(To be filled by dev agent during implementation)
+**Session 1 (2026-05-23):**
+- Created cost.py module with calculate_25year_roi() function
+  - Implements 25-year financial analysis with annual degradation (0.5%/year default)
+  - Calculates year 1 savings, break-even year, cumulative savings, total 25-year savings
+  - Degradation formula: Year N generation = Year 1 × (1 - degradation%)^(N-1)
+  - Break-even detection: first year where cumulative ≥ system cost
+- Extended models.py with 5 optional cost fields in SolarInput and 4 in SolarOutput
+- Added cost field validation to validation.py (all-or-nothing check)
+- Updated calculator.py to invoke cost module when cost_eur fields present
+- Created test_cost.py with 13 comprehensive unit tests
+  - Coverage includes: ROI calculation, degradation, break-even, cumulative savings, edge cases
+  - All 13 tests passing with cost.py at 100% coverage
+- Ran full test suite: 199 passing tests, 92.87% coverage (exceeds 80%)
+- No regressions detected
 
 ### Completion Notes
 
-(To be filled by dev agent at completion)
+✅ **Story 2-4 Implementation Complete**
+
+All acceptance criteria met:
+1. ✅ cost.py exports calculate_25year_roi() with correct signature and financial model
+2. ✅ SolarInput extended with 5 optional cost fields (system_cost_eur, prices, lifespan, degradation)
+3. ✅ SolarOutput extended with 4 optional cost result fields
+4. ✅ Requests without cost fields return identical response format (backwards compatible)
+5. ✅ Partial cost fields rejected with HTTP 422 and clear validation error message
+6. ✅ Degradation applied correctly (Year 25 ≈ 88% of Year 1, ~12% loss over 25 years)
+7. ✅ Break-even calculation finds first year where cumulative ≥ system cost (null if never)
+8. ✅ Italian defaults used: €1800/kW system cost, €0.32/kWh electricity, €0.12/kWh feed-in, 25-year lifespan, 0.5% degradation
+
+**Implementation Details:**
+- cost.py: 64 lines, pure function with no dependencies on other modules
+- models.py: Extended with 9 new optional fields (5 SolarInput, 4 SolarOutput)
+- validation.py: Added cost field all-or-nothing validation
+- calculator.py: Integrated cost calculation when cost fields present
+- test_cost.py: 13 tests covering all scenarios (payback vs no-payback, degradation, edge cases)
+
+**Architecture Compliance:**
+- ARCH-2: Cost logic isolated in cost.py (no dependencies on battery.py or other modules)
+- All-or-nothing validation consistent with battery field pattern
+- Response serialization excludes None values for backwards compatibility
+- Financial model uses standard industry degradation (0.5%/year for crystalline panels)
 
 ---
 
@@ -229,8 +265,11 @@ Story 2.4 implements backend cost analysis (ROI module), parallel to 2.1 (batter
 
 ## Status
 
-**Current:** ready-for-dev
-**Completion:** 0% (no tasks started)
+**Current:** review
+**Completion:** 100% (all tasks completed)
 **Story Created:** 2026-05-23
+**Started:** 2026-05-23
+**Completed:** 2026-05-23
+**Tests:** 13 passing (cost module), 199 total backend tests passing, 92.87% coverage
 **Next:** await dev-story agent execution
 

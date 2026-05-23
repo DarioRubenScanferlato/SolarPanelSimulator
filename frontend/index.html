@@ -143,10 +143,50 @@
             </div>
             </section>
 
-            <!-- Battery Simulation Tab (Placeholder) -->
+            <!-- Battery Simulation Tab -->
             <section class="tab-panel" id="panel-battery" role="tabpanel" aria-labelledby="tab-battery" hidden>
-                <h2>Battery Simulation</h2>
-                <p>Battery simulation coming soon...</p>
+                <div id="battery-panel">
+                    <!-- Battery form rendered here by battery-forms.js -->
+                    <button type="button" id="batterySimulateBtn" class="btn-primary">Simulate</button>
+                    <div id="batteryFormError" class="alert alert-error" hidden role="alert" aria-live="assertive"></div>
+                </div>
+
+                <!-- Battery Results Section -->
+                <div class="results-section" id="batteryResultsSection" hidden aria-live="polite" aria-atomic="true">
+                    <h2>Results</h2>
+
+                    <!-- Battery Result Cards -->
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-value" id="battery-self-consumption-card">-</div>
+                            <div class="card-label">Self Consumption (%)</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-value" id="battery-grid-export-card">-</div>
+                            <div class="card-label">Grid Export (kWh)</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-value" id="battery-grid-import-card">-</div>
+                            <div class="card-label">Grid Import (kWh)</div>
+                        </div>
+                    </div>
+
+                    <!-- SoC Chart -->
+                    <div class="charts-container">
+                        <div class="chart-box">
+                            <h3>State of Charge Profile</h3>
+                            <div class="chart-wrapper" role="img" aria-label="Battery state of charge chart showing hourly charge levels throughout the day">
+                                <canvas id="battery-soc-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading indicator -->
+                <div id="batteryLoadingIndicator" class="loading" hidden>
+                    <div class="spinner"></div>
+                    <p>Simulating...</p>
+                </div>
             </section>
 
             <!-- Cost Analysis Tab (Placeholder) -->

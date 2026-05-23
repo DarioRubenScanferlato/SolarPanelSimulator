@@ -4,13 +4,7 @@ const API_URL = (typeof window !== 'undefined' && window.APP_API_URL)
     : 'http://localhost:8000';
 
 export async function simulateSolar(payload) {
-    const btn = document.getElementById('simulateBtn');
-
     try {
-        // Show loading state
-        btn.disabled = true;
-        btn.textContent = 'Simulating…';
-
         // Make request
         const response = await fetch(`${API_URL}/simulate`, {
             method: 'POST',
@@ -34,9 +28,5 @@ export async function simulateSolar(payload) {
             error: true,
             message: `Failed to connect to backend: ${error.message}`
         };
-    } finally {
-        // Restore button state
-        btn.disabled = false;
-        btn.textContent = 'Simulate';
     }
 }

@@ -26,6 +26,11 @@ class SolarInput(BaseModel):
     battery_discharge_efficiency: float | None = Field(None, ge=80, le=99, description="Discharge efficiency as percentage (optional)")
     daily_load_kwh: float | None = Field(None, ge=0.1, description="Daily household load in kWh (optional)")
     initial_soc_pct: float | None = Field(None, ge=0, le=100, description="Initial battery state of charge as percentage (optional)")
+    system_cost_eur: float | None = Field(None, ge=0, description="Total system cost in euros (optional, all-or-none with other cost fields)")
+    electricity_price_eur_per_kwh: float | None = Field(None, ge=0, description="Electricity price in €/kWh (optional)")
+    feedin_tariff_eur_per_kwh: float | None = Field(None, ge=0, description="Feed-in tariff in €/kWh (optional)")
+    lifespan_years: int | None = Field(None, ge=1, description="System lifespan in years (optional)")
+    annual_degradation_percent: float | None = Field(None, ge=0, le=100, description="Annual degradation as percentage (optional)")
 
     @field_validator("start_date")
     @classmethod
@@ -53,6 +58,10 @@ class SolarOutput(BaseModel):
     self_consumption_pct: float | None = Field(None, description="Percentage of solar used locally (0-100)")
     grid_export_kwh: float | None = Field(None, description="Total energy exported to grid in kWh")
     grid_import_kwh: float | None = Field(None, description="Total energy imported from grid in kWh")
+    cost_year_1_savings: float | None = Field(None, description="First year financial savings in euros")
+    cost_breakeven_year: int | None = Field(None, description="Year when system pays for itself (or null if no payback)")
+    cost_cumulative_savings: List[float] | None = Field(None, description="Cumulative savings for each year (25 values if cost present)")
+    cost_total_25year_savings: float | None = Field(None, description="Total financial savings over 25 years in euros")
 
 
 class ValidationError(BaseModel):

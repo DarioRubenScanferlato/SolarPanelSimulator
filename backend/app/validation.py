@@ -133,4 +133,22 @@ def validate_input(input_data: SolarInput) -> list[ValidationError]:
             )
         )
 
+    # Cost field validation (all-or-nothing: either all present or all None)
+    cost_fields = [
+        input_data.system_cost_eur,
+        input_data.electricity_price_eur_per_kwh,
+        input_data.feedin_tariff_eur_per_kwh,
+        input_data.lifespan_years,
+        input_data.annual_degradation_percent,
+    ]
+    cost_provided = [f is not None for f in cost_fields]
+
+    if any(cost_provided) and not all(cost_provided):
+        errors.append(
+            ValidationError(
+                field="cost",
+                message="All cost fields must be provided together or not at all",
+            )
+        )
+
     return errors
