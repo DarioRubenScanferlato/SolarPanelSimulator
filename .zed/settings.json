@@ -1,0 +1,17 @@
+{
+  "python": {
+    "path": "./backend/.venv/bin/python",
+    "formatting": {
+      "provider": "ruff"
+    }
+  },
+  "lsp": {
+    "pyright": {
+      "settings": {
+        "python.pythonPath": "./backend/.venv/bin/python",
+        "python.venvPath": "./backend",
+        "python.defaultInterpreterPath": "./backend/.venv/bin/python"
+      }
+    }
+  }
+}
