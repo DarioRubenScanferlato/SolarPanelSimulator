@@ -58,4 +58,7 @@ development_status:
   2-7-battery-hourly-energy-breakdown-visualization: review
   2-8-battery-yearly-consumption-analysis-graph: review
   2-9-enhance-battery-breakdown-chart-with-charge-and-load: ready-for-dev
+  2-10-battery-daily-energy-balance-visualization: ready-for-dev
+  2-11-cost-payback-timeline-visualization: ready-for-dev
+  2-12-cost-monthly-revenue-and-profit-analysis: ready-for-dev
   epic-2-retrospective: optional
