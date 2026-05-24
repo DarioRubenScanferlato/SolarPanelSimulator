@@ -4,6 +4,7 @@ Tests battery energy balance, SoC bounds, efficiency losses, and edge cases
 """
 
 import pytest
+
 from app.battery import simulate_battery
 
 

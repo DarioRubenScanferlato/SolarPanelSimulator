@@ -1,12 +1,13 @@
 """Integration tests for /simulate endpoint including validation, rate limiting, security, and CORS."""
 
-import pytest
-import unittest.mock
 import time
+import unittest.mock
+
+import pytest
 from fastapi.testclient import TestClient
+
 import app.main as main_module
-from app.main import app, limiter
-from app.models import SolarInput
+from app.main import app
 
 
 @pytest.fixture

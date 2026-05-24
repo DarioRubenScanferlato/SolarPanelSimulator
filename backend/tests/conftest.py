@@ -1,7 +1,9 @@
 """Pytest configuration and shared fixtures for backend tests."""
 
-import pytest
 from datetime import datetime
+
+import pytest
+
 from app.models import SolarInput
 
 

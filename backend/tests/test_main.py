@@ -4,6 +4,7 @@ import unittest.mock
 
 import pytest
 from fastapi.testclient import TestClient
+
 from app.main import app
 from app.models import SolarInput
 

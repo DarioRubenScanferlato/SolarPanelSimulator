@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import traceback
+
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,7 +17,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from app.calculator import simulate
-from app.models import SolarInput, SolarOutput
+from app.models import SolarInput
 from app.validation import validate_input
 
 load_dotenv()

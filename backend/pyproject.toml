@@ -34,4 +34,5 @@ known-first-party = ["app"]
 dev = [
     "pytest==7.4.3",
     "pytest-cov==4.1.0",
+    "ruff>=0.4.10",
 ]

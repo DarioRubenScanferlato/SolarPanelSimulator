@@ -4,6 +4,7 @@ Tests ROI calculation, degradation, break-even, and financial metrics
 """
 
 import pytest
+
 from app.cost import calculate_25year_roi
 
 
@@ -70,24 +71,10 @@ def test_cost_breakeven_year_calculation(basic_cost_params):
 
 def test_cost_degradation_applied_correctly():
     """Test that degradation is applied correctly (0.5%/year)"""
-    result = calculate_25year_roi(
-        annual_generation_kwh=5000,
-        system_cost_eur=20000,
-        electricity_price=0.32,
-        feedin_tariff=0.12,
-        degradation_percent=0.5,
-        lifespan_years=25
-    )
-
     # Year 1: 5000 kWh
     # Year 25: 5000 × (1 - 0.005)^24 ≈ 5000 × 0.8879 ≈ 4439 kWh (11.2% loss)
     year_1_generation = 5000
     year_25_generation = year_1_generation * ((1 - 0.5 / 100) ** 24)
-
-    # Year 1 savings: 5000 * 0.44 = 2200
-    # Year 25 savings: ~4439 * 0.44 ≈ 1953
-    year_1_savings = year_1_generation * 0.44
-    year_25_savings = year_25_generation * 0.44
 
     # Verify degradation reduces year 25 generation by approximately 11-12%
     degradation_loss = (year_1_generation - year_25_generation) / year_1_generation
@@ -341,13 +328,6 @@ def test_cost_battery_integrated_degradation():
     # Year 1: 5000 kWh total, 4000 self-consumed, 1000 exported
     year_1_savings = (4000 * 0.32) + (1000 * 0.12)
     assert result["cumulative_savings"][0] == pytest.approx(year_1_savings, abs=0.1)
-
-    # Year 25: degraded generation = 5000 × (0.995)^24 ≈ 4439 kWh
-    # Then split: 4439 × 0.80 ≈ 3551 self-consumed, 4439 × 0.20 ≈ 888 exported
-    year_25_generation = 5000 * ((1 - 0.5 / 100) ** 24)
-    year_25_self_consumed = year_25_generation * 0.80
-    year_25_exported = year_25_generation * 0.20
-    year_25_savings = (year_25_self_consumed * 0.32) + (year_25_exported * 0.12)
 
     # Cumulative should be less in year 25 than if no degradation
     # Verify degradation reduces savings

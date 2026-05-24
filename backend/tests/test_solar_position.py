@@ -1,6 +1,5 @@
 """Unit tests for solar_position module (sunrise/sunset and sun angles)."""
 
-import math
 from datetime import datetime
 
 import pytest

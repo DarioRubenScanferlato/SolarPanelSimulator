@@ -163,7 +163,6 @@ def aggregate_to_yearly(
             next_month_start = datetime(year + 1, 1, 1)
         else:
             next_month_start = datetime(year, month + 1, 1)
-        last_day_of_month = (next_month_start - timedelta(days=1)).day
 
         # Calculate days in this month that fall within the simulation period
         month_start = current_date.replace(day=1)
