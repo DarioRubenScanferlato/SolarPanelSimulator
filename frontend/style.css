@@ -94,6 +94,21 @@ section h3 {
 }
 
 /* Form Styles */
+.form-section {
+    display: block;
+    margin-bottom: 30px;
+}
+
+.inheritance-notice {
+    background: #e8f4f8;
+    border-left: 4px solid #667eea;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    color: #333;
+    font-size: 0.95em;
+}
+
 .form-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

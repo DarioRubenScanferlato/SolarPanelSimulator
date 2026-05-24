@@ -30,6 +30,10 @@ import {
     updateBatteryBreakdownChart
 } from './battery-breakdown-chart.js';
 import {
+    initBatteryYearlyChart,
+    updateBatteryYearlyChart
+} from './battery-yearly-chart.js';
+import {
     initCostForm,
     getCostInput,
     showCostFieldError,
@@ -92,6 +96,7 @@ function setupBatteryForm() {
     // Initialize battery charts
     initBatterySoCChart('battery-soc-chart');
     initBatteryBreakdownChart('battery-breakdown-chart');
+    initBatteryYearlyChart('battery-yearly-chart-canvas');
 
     // Add battery Simulate button listener
     const batteryBtn = document.getElementById('batterySimulateBtn');
@@ -240,6 +245,15 @@ function displayBatteryResults(data) {
             hourly_solar_consumption: data.battery_hourly_solar_consumption || [],
             hourly_grid_consumption: data.battery_hourly_grid_consumption || [],
             hourly_grid_export: data.battery_hourly_grid_export || []
+        });
+    }
+
+    // Update yearly chart
+    if (data.battery_monthly_solar_consumption || data.battery_monthly_grid_consumption || data.battery_monthly_battery_discharge) {
+        updateBatteryYearlyChart({
+            monthly_solar_consumption: data.battery_monthly_solar_consumption || [],
+            monthly_grid_consumption: data.battery_monthly_grid_consumption || [],
+            monthly_battery_discharge: data.battery_monthly_battery_discharge || []
         });
     }
 

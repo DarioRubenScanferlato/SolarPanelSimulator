@@ -169,7 +169,7 @@ export function initCostAnnualChart(canvasId) {
                     bodyFont: { size: 12 },
                     callbacks: {
                         label: function(context) {
-                            return '€' + context.parsed.y.toFixed(0);
+                            return context.parsed.y !== null ? '€' + context.parsed.y.toFixed(0) : '€0';
                         }
                     }
                 }

@@ -1,6 +1,6 @@
 # Sprint Status for bmad-solar-panels
 # generated: 2026-05-22
-# last_updated: 2026-05-23 (Story 2-5 implementation complete; ready for code review)
+# last_updated: 2026-05-24 (Story 2-8 battery yearly consumption chart complete; 196 tests passing, all green)
 # project: bmad-solar-panels
 # project_key: NOKEY
 # tracking_system: file-system
@@ -54,7 +54,7 @@ development_status:
   2-3-unit-testing-framework-and-battery-tests: review
   2-4-cost-backend-roi-module-api-extension: review
   2-5-cost-frontend-form-charts-and-result-cards: review
-  2-6-battery-integrated-cost-analysis-and-testing: ready-for-dev
+  2-6-battery-integrated-cost-analysis-and-testing: review
   2-7-battery-hourly-energy-breakdown-visualization: review
-  2-8-battery-yearly-consumption-analysis-graph: ready-for-dev
+  2-8-battery-yearly-consumption-analysis-graph: review
   epic-2-retrospective: optional

@@ -6,7 +6,7 @@ Main calculation engine orchestrating all solar simulations
 import math
 from datetime import datetime, timedelta
 
-from app.battery import simulate_battery
+from app.battery import aggregate_to_yearly, simulate_battery
 from app.cost import calculate_25year_roi
 from app.constants import (
     AMBIENT_TEMP_AMPLITUDE_C,
@@ -208,15 +208,38 @@ def simulate(input_data: SolarInput) -> SolarOutput:
         solar_output.grid_export_kwh = round(battery_result["grid_export_kwh"], 2)
         solar_output.grid_import_kwh = round(battery_result["grid_import_kwh"], 2)
 
+        # Aggregate hourly breakdown to monthly totals if duration >= 24 hours
+        if input_data.duration_days >= 1:
+            yearly_result = aggregate_to_yearly(
+                daily_hourly_breakdown={
+                    "hourly_solar_consumption": battery_result["battery_hourly_solar_consumption"],
+                    "hourly_grid_consumption": battery_result["battery_hourly_grid_consumption"],
+                    "hourly_battery_discharge": battery_result["battery_hourly_discharge"]
+                },
+                start_date_str=input_data.start_date,
+                duration_days=input_data.duration_days
+            )
+            solar_output.battery_monthly_solar_consumption = [round(x, 1) for x in yearly_result["monthly_solar_consumption"]]
+            solar_output.battery_monthly_grid_consumption = [round(x, 1) for x in yearly_result["monthly_grid_consumption"]]
+            solar_output.battery_monthly_battery_discharge = [round(x, 1) for x in yearly_result["monthly_battery_discharge"]]
+
     # Simulate cost analysis if all cost fields provided
     if input_data.system_cost_eur is not None:
+        # Prepare battery params if battery simulation was run
+        cost_battery_params = None
+        if input_data.battery_capacity_kwh is not None and battery_result is not None:
+            cost_battery_params = {
+                "self_consumption_pct": battery_result["self_consumption_pct"]
+            }
+
         cost_result = calculate_25year_roi(
             annual_generation_kwh=annual_energy,
             system_cost_eur=input_data.system_cost_eur,
             electricity_price=input_data.electricity_price_eur_per_kwh,
             feedin_tariff=input_data.feedin_tariff_eur_per_kwh,
             degradation_percent=input_data.annual_degradation_percent,
-            lifespan_years=input_data.lifespan_years
+            lifespan_years=input_data.lifespan_years,
+            battery_params=cost_battery_params
         )
         solar_output.cost_year_1_savings = round(cost_result["year_1_savings"], 2)
         solar_output.cost_breakeven_year = cost_result["breakeven_year"]

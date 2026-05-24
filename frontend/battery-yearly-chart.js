@@ -1,8 +1,9 @@
-// Battery hourly energy breakdown chart — three-series line chart showing solar/grid/export flows
+// Battery yearly consumption analysis — monthly aggregated energy breakdown
+// Shows 12-month projection of solar consumption, grid consumption, and battery discharge
 
-let breakdownChart = null;
+let yearlyChart = null;
 
-export function initBatteryBreakdownChart(canvasId) {
+export function initBatteryYearlyChart(canvasId) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) {
         console.warn(`Canvas element with id "${canvasId}" not found`);
@@ -10,51 +11,32 @@ export function initBatteryBreakdownChart(canvasId) {
     }
 
     const ctx = canvas.getContext('2d');
-    breakdownChart = new Chart(ctx, {
-        type: 'line',
+    yearlyChart = new Chart(ctx, {
+        type: 'bar',
         data: {
-            labels: [
-                'Hour 0', 'Hour 1', 'Hour 2', 'Hour 3', 'Hour 4', 'Hour 5',
-                'Hour 6', 'Hour 7', 'Hour 8', 'Hour 9', 'Hour 10', 'Hour 11',
-                'Hour 12', 'Hour 13', 'Hour 14', 'Hour 15', 'Hour 16', 'Hour 17',
-                'Hour 18', 'Hour 19', 'Hour 20', 'Hour 21', 'Hour 22', 'Hour 23'
-            ],
+            labels: ['January', 'February', 'March', 'April', 'May', 'June',
+                     'July', 'August', 'September', 'October', 'November', 'December'],
             datasets: [
                 {
                     label: 'Solar Consumption',
                     data: [],
-                    borderColor: '#2ecc71',
-                    backgroundColor: 'rgba(46, 204, 113, 0.05)',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: false,
-                    pointRadius: 3,
-                    pointHoverRadius: 5,
-                    pointBackgroundColor: '#2ecc71'
+                    backgroundColor: '#2ecc71',
+                    borderColor: '#27ae60',
+                    borderWidth: 1
                 },
                 {
                     label: 'Grid Consumption',
                     data: [],
-                    borderColor: '#f39c12',
-                    backgroundColor: 'rgba(243, 156, 18, 0.05)',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: false,
-                    pointRadius: 3,
-                    pointHoverRadius: 5,
-                    pointBackgroundColor: '#f39c12'
+                    backgroundColor: '#f39c12',
+                    borderColor: '#e67e22',
+                    borderWidth: 1
                 },
                 {
-                    label: 'Sold to Grid',
+                    label: 'Battery Discharge',
                     data: [],
-                    borderColor: '#e74c3c',
-                    backgroundColor: 'rgba(231, 76, 60, 0.05)',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: false,
-                    pointRadius: 3,
-                    pointHoverRadius: 5,
-                    pointBackgroundColor: '#e74c3c'
+                    backgroundColor: '#3498db',
+                    borderColor: '#2980b9',
+                    borderWidth: 1
                 }
             ]
         },
@@ -83,7 +65,7 @@ export function initBatteryBreakdownChart(canvasId) {
                             let label = context.dataset.label || '';
                             if (label) label += ': ';
                             if (context.parsed.y !== null) {
-                                label += context.parsed.y.toFixed(2) + ' kWh';
+                                label += context.parsed.y.toFixed(1) + ' kWh';
                             }
                             return label;
                         }
@@ -92,6 +74,7 @@ export function initBatteryBreakdownChart(canvasId) {
             },
             scales: {
                 x: {
+                    stacked: false,
                     grid: {
                         display: true,
                         drawBorder: true,
@@ -99,9 +82,14 @@ export function initBatteryBreakdownChart(canvasId) {
                     },
                     ticks: {
                         font: { size: 10 }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Month'
                     }
                 },
                 y: {
+                    stacked: false,
                     beginAtZero: true,
                     grid: {
                         display: true,
@@ -109,7 +97,7 @@ export function initBatteryBreakdownChart(canvasId) {
                     },
                     ticks: {
                         callback: function(value) {
-                            return value.toFixed(1) + ' kWh';
+                            return value.toFixed(0) + ' kWh';
                         }
                     },
                     title: {
@@ -122,21 +110,26 @@ export function initBatteryBreakdownChart(canvasId) {
     });
 }
 
-export function updateBatteryBreakdownChart(breakdownData) {
-    if (!breakdownChart) {
-        console.warn('Breakdown chart not initialized');
+export function updateBatteryYearlyChart(yearlyData) {
+    if (!yearlyChart) {
+        console.warn('Yearly chart not initialized');
         return;
     }
 
-    if (!breakdownData || !breakdownData.hourly_solar_consumption ||
-        !breakdownData.hourly_grid_consumption || !breakdownData.hourly_grid_export) {
-        console.warn('Invalid breakdown data: missing required arrays');
-        return;
+    // Update datasets with monthly data
+    yearlyChart.data.datasets[0].data = yearlyData.monthly_solar_consumption || [];
+    yearlyChart.data.datasets[1].data = yearlyData.monthly_grid_consumption || [];
+    yearlyChart.data.datasets[2].data = yearlyData.monthly_battery_discharge || [];
+
+    // Trim X-axis labels to match actual number of months in data
+    const numMonths = Math.max(
+        yearlyData.monthly_solar_consumption?.length || 0,
+        yearlyData.monthly_grid_consumption?.length || 0,
+        yearlyData.monthly_battery_discharge?.length || 0
+    );
+    if (numMonths > 0 && numMonths < 12) {
+        yearlyChart.data.labels = yearlyChart.data.labels.slice(0, numMonths);
     }
 
-    // Update chart data in-place (ARCH-5 compliance: never destroy/recreate)
-    breakdownChart.data.datasets[0].data = breakdownData.hourly_solar_consumption;
-    breakdownChart.data.datasets[1].data = breakdownData.hourly_grid_consumption;
-    breakdownChart.data.datasets[2].data = breakdownData.hourly_grid_export;
-    breakdownChart.update();
+    yearlyChart.update();
 }

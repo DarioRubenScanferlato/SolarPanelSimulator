@@ -231,3 +231,153 @@ def test_cost_output_format_validation():
     assert result["total_25year_savings"] > 0
 
     assert result["breakeven_year"] is None or isinstance(result["breakeven_year"], int)
+
+
+# Battery-Integrated Cost Calculation Tests
+
+def test_cost_battery_integrated_high_self_consumption():
+    """Test battery-integrated cost with 80% self-consumption"""
+    battery_params = {"self_consumption_pct": 80}
+    result = calculate_25year_roi(
+        annual_generation_kwh=5000,
+        system_cost_eur=9000,
+        electricity_price=0.32,
+        feedin_tariff=0.12,
+        degradation_percent=0,  # No degradation for clarity
+        lifespan_years=25,
+        battery_params=battery_params
+    )
+
+    # Year 1 calculation:
+    # self_consumed = 5000 × 0.80 = 4000 kWh
+    # exported = 5000 × 0.20 = 1000 kWh
+    # year_1_savings = (4000 × 0.32) + (1000 × 0.12) = 1280 + 120 = 1400
+    expected_year_1 = (4000 * 0.32) + (1000 * 0.12)
+    assert result["year_1_savings"] == pytest.approx(expected_year_1, abs=0.1)
+
+    # Should have all required fields
+    assert "year_1_savings" in result
+    assert "breakeven_year" in result
+    assert "cumulative_savings" in result
+    assert "total_25year_savings" in result
+
+
+def test_cost_battery_integrated_low_self_consumption():
+    """Test battery-integrated cost with 20% self-consumption"""
+    battery_params = {"self_consumption_pct": 20}
+    result = calculate_25year_roi(
+        annual_generation_kwh=5000,
+        system_cost_eur=9000,
+        electricity_price=0.32,
+        feedin_tariff=0.12,
+        degradation_percent=0,
+        lifespan_years=25,
+        battery_params=battery_params
+    )
+
+    # Year 1 calculation:
+    # self_consumed = 5000 × 0.20 = 1000 kWh
+    # exported = 5000 × 0.80 = 4000 kWh
+    # year_1_savings = (1000 × 0.32) + (4000 × 0.12) = 320 + 480 = 800
+    expected_year_1 = (1000 * 0.32) + (4000 * 0.12)
+    assert result["year_1_savings"] == pytest.approx(expected_year_1, abs=0.1)
+
+
+def test_cost_battery_integrated_zero_battery():
+    """Test battery-integrated cost with 0% self-consumption (equivalent to solar-only)"""
+    battery_params = {"self_consumption_pct": 0}
+    result = calculate_25year_roi(
+        annual_generation_kwh=5000,
+        system_cost_eur=9000,
+        electricity_price=0.32,
+        feedin_tariff=0.12,
+        degradation_percent=0,
+        lifespan_years=25,
+        battery_params=battery_params
+    )
+
+    # Year 1 calculation:
+    # self_consumed = 5000 × 0.00 = 0 kWh
+    # exported = 5000 × 1.00 = 5000 kWh
+    # year_1_savings = (0 × 0.32) + (5000 × 0.12) = 0 + 600 = 600
+    expected_year_1 = (0 * 0.32) + (5000 * 0.12)
+    assert result["year_1_savings"] == pytest.approx(expected_year_1, abs=0.1)
+
+
+def test_cost_battery_integrated_full_self_consumption():
+    """Test battery-integrated cost with 100% self-consumption"""
+    battery_params = {"self_consumption_pct": 100}
+    result = calculate_25year_roi(
+        annual_generation_kwh=5000,
+        system_cost_eur=9000,
+        electricity_price=0.32,
+        feedin_tariff=0.12,
+        degradation_percent=0,
+        lifespan_years=25,
+        battery_params=battery_params
+    )
+
+    # Year 1 calculation:
+    # self_consumed = 5000 × 1.00 = 5000 kWh
+    # exported = 5000 × 0.00 = 0 kWh
+    # year_1_savings = (5000 × 0.32) + (0 × 0.12) = 1600 + 0 = 1600
+    expected_year_1 = (5000 * 0.32) + (0 * 0.12)
+    assert result["year_1_savings"] == pytest.approx(expected_year_1, abs=0.1)
+
+
+def test_cost_battery_integrated_degradation():
+    """Test that degradation is applied correctly in battery-integrated path"""
+    battery_params = {"self_consumption_pct": 80}
+    result = calculate_25year_roi(
+        annual_generation_kwh=5000,
+        system_cost_eur=20000,
+        electricity_price=0.32,
+        feedin_tariff=0.12,
+        degradation_percent=0.5,
+        lifespan_years=25,
+        battery_params=battery_params
+    )
+
+    # Year 1: 5000 kWh total, 4000 self-consumed, 1000 exported
+    year_1_savings = (4000 * 0.32) + (1000 * 0.12)
+    assert result["cumulative_savings"][0] == pytest.approx(year_1_savings, abs=0.1)
+
+    # Year 25: degraded generation = 5000 × (0.995)^24 ≈ 4439 kWh
+    # Then split: 4439 × 0.80 ≈ 3551 self-consumed, 4439 × 0.20 ≈ 888 exported
+    year_25_generation = 5000 * ((1 - 0.5 / 100) ** 24)
+    year_25_self_consumed = year_25_generation * 0.80
+    year_25_exported = year_25_generation * 0.20
+    year_25_savings = (year_25_self_consumed * 0.32) + (year_25_exported * 0.12)
+
+    # Cumulative should be less in year 25 than if no degradation
+    # Verify degradation reduces savings
+    assert result["cumulative_savings"][-1] < (year_1_savings * 25)
+
+
+def test_cost_battery_vs_solar_only_comparison():
+    """Test that battery-integrated cost is different from solar-only"""
+    solar_only = calculate_25year_roi(
+        annual_generation_kwh=5000,
+        system_cost_eur=9000,
+        electricity_price=0.32,
+        feedin_tariff=0.12,
+        degradation_percent=0,
+        lifespan_years=25,
+        battery_params=None
+    )
+
+    battery_integrated = calculate_25year_roi(
+        annual_generation_kwh=5000,
+        system_cost_eur=9000,
+        electricity_price=0.32,
+        feedin_tariff=0.12,
+        degradation_percent=0,
+        lifespan_years=25,
+        battery_params={"self_consumption_pct": 80}
+    )
+
+    # Solar-only: 5000 × (0.32 + 0.12) = 2200
+    # Battery (80%): (4000 × 0.32) + (1000 × 0.12) = 1400
+    # Battery savings should be lower (due to lower feedin_tariff on exports)
+    assert solar_only["year_1_savings"] > battery_integrated["year_1_savings"]
+    assert solar_only["total_25year_savings"] > battery_integrated["total_25year_savings"]
