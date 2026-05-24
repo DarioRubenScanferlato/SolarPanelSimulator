@@ -5,7 +5,7 @@ Main calculation engine orchestrating all solar simulations
 
 import logging
 import math
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -191,7 +191,13 @@ def simulate(input_data: SolarInput) -> SolarOutput:
     )
 
     # Simulate battery if all battery fields provided
-    if input_data.battery_capacity_kwh is not None:
+    if (
+        input_data.battery_capacity_kwh is not None
+        and input_data.battery_charge_efficiency is not None
+        and input_data.battery_discharge_efficiency is not None
+        and input_data.daily_load_kwh is not None
+        and input_data.initial_soc_pct is not None
+    ):
         solar_output_dict = {
             "daily_hourly_generation": first_day_profile if first_day_profile else []
         }

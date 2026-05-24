@@ -1,6 +1,6 @@
 # Sprint Status for bmad-solar-panels
 # generated: 2026-05-22
-# last_updated: 2026-05-24 (Stories 2-9 through 2-12 complete: battery & cost chart visualizations finished; 220 tests passing, all green)
+# last_updated: 2026-05-25 (Story 3-13 complete: README updated with all 3 tabs, accurate structure, no TODOs)
 # project: bmad-solar-panels
 # project_key: NOKEY
 # tracking_system: file-system
@@ -45,6 +45,7 @@ development_status:
   3-10-semantic-html-aria-improvements: done
   3-11-keyboard-navigation-screen-reader-support: done
   3-12-accessibility-audit-and-color-contrast-fixes: done
+  3-13-update-readme: review
   epic-3-retrospective: optional
 
   # Epic 2: Battery Storage Simulation & Cost Analysis
