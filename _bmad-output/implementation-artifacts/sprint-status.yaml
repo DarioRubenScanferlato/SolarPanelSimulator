@@ -57,4 +57,5 @@ development_status:
   2-6-battery-integrated-cost-analysis-and-testing: review
   2-7-battery-hourly-energy-breakdown-visualization: review
   2-8-battery-yearly-consumption-analysis-graph: review
+  2-9-enhance-battery-breakdown-chart-with-charge-and-load: ready-for-dev
   epic-2-retrospective: optional
