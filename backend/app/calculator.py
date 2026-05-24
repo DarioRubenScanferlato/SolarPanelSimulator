@@ -3,8 +3,11 @@ Solar Panel Simulator - Solar Calculator
 Main calculation engine orchestrating all solar simulations
 """
 
+import logging
 import math
 from datetime import datetime, timedelta
+
+logger = logging.getLogger(__name__)
 
 from app.battery import aggregate_to_yearly, simulate_battery
 from app.constants import (
@@ -212,6 +215,12 @@ def simulate(input_data: SolarInput) -> SolarOutput:
         solar_output.battery_hourly_grid_export = [
             round(x, 3) for x in battery_result["battery_hourly_grid_export"]
         ]
+        solar_output.battery_hourly_charge = [
+            round(x, 3) for x in battery_result["battery_hourly_charge"]
+        ]
+        solar_output.hourly_load = [
+            round(x, 3) for x in battery_result["hourly_load"]
+        ]
         solar_output.self_consumption_pct = round(battery_result["self_consumption_pct"], 1)
         solar_output.grid_export_kwh = round(battery_result["grid_export_kwh"], 2)
         solar_output.grid_import_kwh = round(battery_result["grid_import_kwh"], 2)
@@ -237,27 +246,47 @@ def simulate(input_data: SolarInput) -> SolarOutput:
                 round(x, 1) for x in yearly_result["monthly_battery_discharge"]
             ]
 
-    # Simulate cost analysis if all cost fields provided
-    if input_data.system_cost_eur is not None:
-        # Prepare battery params if battery simulation was run
-        cost_battery_params = None
-        if input_data.battery_capacity_kwh is not None and battery_result is not None:
-            cost_battery_params = {"self_consumption_pct": battery_result["self_consumption_pct"]}
+    # Simulate cost analysis if all cost fields provided and valid
+    if (input_data.system_cost_eur is not None and
+        input_data.electricity_price_eur_per_kwh is not None and
+        input_data.feedin_tariff_eur_per_kwh is not None and
+        input_data.lifespan_years is not None and
+        input_data.annual_degradation_percent is not None):
 
-        cost_result = calculate_25year_roi(
-            annual_generation_kwh=annual_energy,
-            system_cost_eur=input_data.system_cost_eur,
-            electricity_price=input_data.electricity_price_eur_per_kwh,
-            feedin_tariff=input_data.feedin_tariff_eur_per_kwh,
-            degradation_percent=input_data.annual_degradation_percent,
-            lifespan_years=input_data.lifespan_years,
-            battery_params=cost_battery_params,
-        )
-        solar_output.cost_year_1_savings = round(cost_result["year_1_savings"], 2)
-        solar_output.cost_breakeven_year = cost_result["breakeven_year"]
-        solar_output.cost_cumulative_savings = [
-            round(x, 2) for x in cost_result["cumulative_savings"]
-        ]
-        solar_output.cost_total_25year_savings = round(cost_result["total_25year_savings"], 2)
+        try:
+            # Echo system cost back to frontend for validation
+            solar_output.cost_system_cost_eur = input_data.system_cost_eur
+
+            # Prepare battery params if battery simulation was run
+            cost_battery_params = None
+            if input_data.battery_capacity_kwh is not None and battery_result is not None:
+                cost_battery_params = {"self_consumption_pct": battery_result["self_consumption_pct"]}
+
+            cost_result = calculate_25year_roi(
+                annual_generation_kwh=annual_energy,
+                system_cost_eur=input_data.system_cost_eur,
+                electricity_price=input_data.electricity_price_eur_per_kwh,
+                feedin_tariff=input_data.feedin_tariff_eur_per_kwh,
+                degradation_percent=input_data.annual_degradation_percent,
+                lifespan_years=input_data.lifespan_years,
+                battery_params=cost_battery_params,
+            )
+            solar_output.cost_year_1_savings = round(cost_result["year_1_savings"], 2)
+            solar_output.cost_breakeven_year = cost_result["breakeven_year"]
+            solar_output.cost_cumulative_savings = [
+                round(x, 2) for x in cost_result["cumulative_savings"]
+            ]
+            solar_output.cost_total_25year_savings = round(cost_result["total_25year_savings"], 2)
+            solar_output.cost_monthly_savings = [
+                round(x, 2) for x in cost_result["monthly_savings"]
+            ]
+            solar_output.cost_monthly_cost_allocation = [
+                round(x, 2) for x in cost_result["monthly_cost_allocation"]
+            ]
+        except Exception as e:
+            logger.error(f"Cost calculation failed: {str(e)}")
+            # Cost calculation failed - leave cost fields as None
+    else:
+        logger.warning(f"Cost calculation skipped: missing required fields - system_cost_eur={input_data.system_cost_eur}, electricity_price={input_data.electricity_price_eur_per_kwh}, feedin_tariff={input_data.feedin_tariff_eur_per_kwh}, lifespan={input_data.lifespan_years}, degradation={input_data.annual_degradation_percent}")
 
     return solar_output

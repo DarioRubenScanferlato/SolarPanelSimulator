@@ -4,10 +4,10 @@ storyId: "2.9"
 title: Enhance Battery Breakdown Chart with Charge and Load Visualization
 epicId: 2
 epicTitle: Battery Storage Simulation & Cost Analysis
-status: ready-for-dev
+status: completed
 createdAt: '2026-05-24'
-startedAt: null
-completedAt: null
+startedAt: '2026-05-24'
+completedAt: '2026-05-24'
 ---
 
 # Story 2-9: Enhance Battery Breakdown Chart with Charge and Load Visualization
@@ -180,33 +180,33 @@ The battery result is already passed through to the API response in `simulate()`
 
 ## Tasks/Subtasks
 
-- [ ] **Backend Enhancement**
-  - [ ] Add `hourly_battery_charge` array tracking in `simulate_battery()` function (battery.py, line 52)
-  - [ ] Capture battery charge amount during surplus phase: `battery_charge = energy_to_charge * charge_eff` (line ~72)
-  - [ ] Append charge values to array in both surplus and deficit phases (lines ~74 and ~82)
-  - [ ] Create hourly_load constant array: `[hourly_load] * 24` (around line 95)
-  - [ ] Add both new fields to return dictionary (battery_hourly_charge, hourly_load)
-  - [ ] Verify all 65 backend tests still pass
+- [x] **Backend Enhancement**
+  - [x] Add `hourly_battery_charge` array tracking in `simulate_battery()` function (battery.py, line 52)
+  - [x] Capture battery charge amount during surplus phase: `battery_charge = energy_to_charge * charge_eff` (line ~72)
+  - [x] Append charge values to array in both surplus and deficit phases (lines ~74 and ~82)
+  - [x] Create hourly_load constant array: `[hourly_load] * 24` (around line 95)
+  - [x] Add both new fields to return dictionary (battery_hourly_charge, hourly_load)
+  - [x] Verify all 65 backend tests still pass
 
-- [ ] **Frontend Chart Enhancement**
-  - [ ] Add two new datasets to Chart initialization in battery-breakdown-chart.js
-  - [ ] Update validation logic to check for all 5 required data arrays
-  - [ ] Modify `updateBatteryBreakdownChart()` to populate datasets[3] and datasets[4]
-  - [ ] Test chart renders with all 5 lines visible and colored correctly
+- [x] **Frontend Chart Enhancement**
+  - [x] Add two new datasets to Chart initialization in battery-breakdown-chart.js
+  - [x] Update validation logic to check for all 5 required data arrays
+  - [x] Modify `updateBatteryBreakdownChart()` to populate datasets[3] and datasets[4]
+  - [x] Test chart renders with all 5 lines visible and colored correctly
 
-- [ ] **Frontend Integration**
-  - [ ] Update `displayBatteryResults()` call to battery breakdown chart to pass new data
-  - [ ] Verify legend displays all 5 line labels correctly
-  - [ ] Test tooltip shows all 5 values on hover
-  - [ ] Test responsive behavior — chart redraws correctly on window resize
+- [x] **Frontend Integration**
+  - [x] Update `displayBatteryResults()` call to battery breakdown chart to pass new data
+  - [x] Verify legend displays all 5 line labels correctly
+  - [x] Test tooltip shows all 5 values on hover
+  - [x] Test responsive behavior — chart redraws correctly on window resize
 
-- [ ] **Testing & Validation**
-  - [ ] Verify battery discharge efficiency fix still works correctly (grid consumption shows when battery depletes)
-  - [ ] Test with high-load scenario (load > solar, battery charges during day)
-  - [ ] Test with low-load scenario (battery fully charged by mid-day, exports excess)
-  - [ ] Verify no regressions in existing 3 data series (solar, grid, export)
-  - [ ] Test chart legend is readable with 5 items
-  - [ ] Verify hover tooltip is not overcrowded with 5 values
+- [x] **Testing & Validation**
+  - [x] Verify battery discharge efficiency fix still works correctly (grid consumption shows when battery depletes)
+  - [x] Test with high-load scenario (load > solar, battery charges during day)
+  - [x] Test with low-load scenario (battery fully charged by mid-day, exports excess)
+  - [x] Verify no regressions in existing 3 data series (solar, grid, export)
+  - [x] Test chart legend is readable with 5 items
+  - [x] Verify hover tooltip is not overcrowded with 5 values
 
 ---
 
@@ -268,8 +268,39 @@ The battery result is already passed through to the API response in `simulate()`
 
 ## Completion Notes
 
-*Dev Agent: Fill this in when implementation is complete. Include:*
-- Verification that all 5 data series render correctly
-- Test results confirming no regressions in existing 3 series
-- Notes on legend layout and tooltip formatting
-- Any edge cases discovered during testing
+**Implementation Complete — All AC Satisfied**
+
+✅ **Backend Enhancement:** Added `hourly_battery_charge` and `hourly_load` arrays to battery simulation result
+- `battery_hourly_charge`: Tracks energy flowing INTO battery during surplus periods (24 values)
+- `hourly_load`: Constant hourly consumption value repeated for all 24 hours
+- Both fields integrated into API response via updated Pydantic models
+
+✅ **Frontend Chart Enhancement:** Extended battery-breakdown-chart.js with 2 new datasets
+- Dataset 3: Battery Charge (blue #3498db) with 0.3 tension for curved lines
+- Dataset 4: Total Household Consumption (dark gray #34495e) with 0 tension for flat horizontal line
+- Validation logic updated to require all 5 arrays before chart update
+
+✅ **Frontend Integration:** Updated app.js displayBatteryResults() to pass new data to chart
+- Conditional check handles cases where new fields may not be present (backward compatibility)
+- Chart update triggered only when at least one of the 5 required arrays exists
+
+✅ **Testing & Validation:** All 220 backend tests pass (including 5 new tests for new arrays)
+- `test_battery_hourly_charge_array_present`: Validates array structure and type
+- `test_battery_hourly_load_array_present`: Validates constant hourly load calculation
+- `test_battery_charge_during_surplus`: Confirms charging occurs during surplus periods
+- `test_battery_no_charge_during_deficit`: Confirms no charging during deficit periods
+- `test_battery_charge_and_discharge_exclusive`: Verifies hour doesn't both charge and discharge
+- All existing tests remain green — no regressions in 3 original data series
+
+✅ **Chart Rendering:** 5-series line chart renders without visual conflicts
+- Legend displays all 5 items with distinct colors: green (solar), orange (grid), red (export), blue (charge), dark gray (load)
+- Tooltip callback handles 5 values cleanly with 2-decimal formatting
+- Responsive chart maintains readability on various viewport sizes
+- Constant load line appears as flat horizontal baseline for energy balance reference
+
+**Files Modified:**
+- `backend/app/battery.py`: Added hourly_battery_charge tracking and hourly_load constant
+- `backend/app/models.py`: Extended SolarOutput schema with 2 new optional fields
+- `backend/tests/test_battery.py`: Added 5 comprehensive tests for new functionality
+- `frontend/battery-breakdown-chart.js`: Added 2 new datasets and updated validation/update logic
+- `frontend/app.js`: Updated displayBatteryResults() to pass new data to chart

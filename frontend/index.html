@@ -194,6 +194,14 @@
                             </div>
                             <p class="chart-info">Estimated monthly consumption based on simulation</p>
                         </div>
+
+                        <div class="chart-box">
+                            <h3>Daily Energy Balance</h3>
+                            <div class="chart-wrapper" role="img" aria-label="Daily energy distribution stacked bar chart showing how solar generation is allocated to consumption, battery storage, grid import, and export">
+                                <canvas id="battery-balance-chart"></canvas>
+                            </div>
+                            <p class="chart-info">How daily solar generation is allocated</p>
+                        </div>
                     </div>
                 </div>
 
@@ -246,6 +254,22 @@
                             <div class="chart-wrapper" role="img" aria-label="Annual savings chart showing year-by-year financial returns declining due to panel degradation">
                                 <canvas id="cost-annual-chart"></canvas>
                             </div>
+                        </div>
+
+                        <div class="chart-box">
+                            <h3>Payback Timeline</h3>
+                            <div class="chart-wrapper" role="img" aria-label="System payback timeline showing key financial milestones from system cost through break-even to 25-year savings">
+                                <canvas id="cost-timeline-chart"></canvas>
+                            </div>
+                            <p class="chart-info">Key milestones: system cost, break-even year, 25-year savings</p>
+                        </div>
+
+                        <div class="chart-box">
+                            <h3>Monthly Savings Breakdown</h3>
+                            <div class="chart-wrapper" role="img" aria-label="Monthly revenue and profit analysis stacked bar chart showing monthly savings, system cost allocation, and net profit by month">
+                                <canvas id="cost-monthly-chart"></canvas>
+                            </div>
+                            <p class="chart-info">How monthly savings break down: revenue, costs, and profit by month</p>
                         </div>
                     </div>
                 </div>

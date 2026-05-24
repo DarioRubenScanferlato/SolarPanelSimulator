@@ -172,3 +172,82 @@ def test_battery_energy_balance_invariant(basic_solar_output, basic_battery_para
     # Energy balance (within 5% tolerance for efficiency losses)
     balance = total_solar + result["grid_import_kwh"] - total_load - result["grid_export_kwh"] - delta_soc
     assert abs(balance) < max(total_solar * 0.05, 0.5)  # 5% of solar or 0.5 kWh, whichever is larger
+
+
+def test_battery_hourly_charge_array_present(basic_solar_output, basic_battery_params):
+    """Test that battery_hourly_charge array is returned with correct length"""
+    result = simulate_battery(basic_solar_output, basic_battery_params)
+
+    assert "battery_hourly_charge" in result
+    assert isinstance(result["battery_hourly_charge"], list)
+    assert len(result["battery_hourly_charge"]) == 24
+    assert all(isinstance(x, (int, float)) for x in result["battery_hourly_charge"])
+    assert all(x >= 0 for x in result["battery_hourly_charge"])
+
+
+def test_battery_hourly_load_array_present(basic_solar_output, basic_battery_params):
+    """Test that hourly_load array is returned with correct length and constant value"""
+    result = simulate_battery(basic_solar_output, basic_battery_params)
+
+    assert "hourly_load" in result
+    assert isinstance(result["hourly_load"], list)
+    assert len(result["hourly_load"]) == 24
+    assert all(isinstance(x, (int, float)) for x in result["hourly_load"])
+
+    # All values should be the same (daily load / 24)
+    expected_hourly_load = basic_battery_params["daily_load_kwh"] / 24
+    assert all(abs(x - expected_hourly_load) < 0.001 for x in result["hourly_load"])
+
+
+def test_battery_charge_during_surplus():
+    """Test that battery charge is positive during hours with solar surplus"""
+    # High solar (4 kWh/hr), low load (1 kWh total)
+    solar_output = {
+        "daily_hourly_generation": [4] * 24
+    }
+    battery_params = {
+        "capacity_kwh": 20.0,
+        "charge_efficiency": 0.92,
+        "discharge_efficiency": 0.92,
+        "daily_load_kwh": 1.0,
+        "initial_soc_pct": 0,  # Start empty to maximize charging
+    }
+    result = simulate_battery(solar_output, battery_params)
+
+    # With 4 kWh solar and ~0.042 kWh load per hour, should have significant charging
+    charge_values = result["battery_hourly_charge"]
+    assert any(x > 0 for x in charge_values), "Should have positive charge values during surplus"
+
+
+def test_battery_no_charge_during_deficit():
+    """Test that battery charge is 0 during hours with solar deficit"""
+    # Very low solar (0.1 kWh/hr), high load (10 kWh total)
+    solar_output = {
+        "daily_hourly_generation": [0.1] * 24
+    }
+    battery_params = {
+        "capacity_kwh": 5.0,
+        "charge_efficiency": 0.92,
+        "discharge_efficiency": 0.92,
+        "daily_load_kwh": 10.0,
+        "initial_soc_pct": 100,  # Start full to ensure discharge
+    }
+    result = simulate_battery(solar_output, battery_params)
+
+    # With 0.1 kWh solar and ~0.417 kWh load per hour, deficit is constant
+    # Battery will discharge, not charge
+    charge_values = result["battery_hourly_charge"]
+    assert all(x == 0 for x in charge_values), "Should have no charging during deficit periods"
+
+
+def test_battery_charge_and_discharge_exclusive(basic_solar_output, basic_battery_params):
+    """Test that an hour doesn't both charge and discharge"""
+    result = simulate_battery(basic_solar_output, basic_battery_params)
+
+    charge_values = result["battery_hourly_charge"]
+    discharge_values = result["battery_hourly_discharge"]
+
+    # For each hour, charge OR discharge should be 0 (not both)
+    for charge, discharge in zip(charge_values, discharge_values):
+        # At least one should be 0 (they're exclusive operations)
+        assert charge == 0 or discharge == 0, f"Hour has both charge ({charge}) and discharge ({discharge})"

@@ -10,8 +10,8 @@ export function initCostForm(capacityKw, annualEnergyKwh, lastSimulationTimestam
     const container = document.getElementById('panel-cost');
     if (!container) return;
 
-    // Calculate system cost based on capacity
-    const systemCostEur = capacityKw ? (capacityKw * COST_DEFAULTS_MULTIPLIERS.systemCostPerKwEur) : 0;
+    // Calculate system cost based on capacity, default to 25000 if no capacity provided
+    const systemCostEur = capacityKw ? (capacityKw * COST_DEFAULTS_MULTIPLIERS.systemCostPerKwEur) : 25000;
 
     // Format inheritance notice
     const inheritanceNotice = buildInheritanceNotice(annualEnergyKwh, lastSimulationTimestamp);

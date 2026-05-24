@@ -52,6 +52,8 @@ def calculate_25year_roi(
             - breakeven_year: Year when cumulative savings ≥ system_cost (int or null)
             - cumulative_savings: List of cumulative savings for each year (€)
             - total_25year_savings: Sum of all annual savings (€)
+            - monthly_savings: List of monthly savings for year 1 (12 values, € evenly distributed)
+            - monthly_cost_allocation: List of monthly system cost allocation (12 values, € evenly distributed)
     """
     # Determine which calculation path to use
     if battery_params is None:
@@ -114,11 +116,17 @@ def _calculate_solar_only_roi(
         if breakeven_year is None and total_cumulative >= system_cost_eur:
             breakeven_year = year
 
+    # Calculate monthly breakdown for year 1
+    monthly_savings = [year_1_savings / 12] * 12
+    monthly_cost_allocation = [system_cost_eur / (lifespan_years * 12)] * 12
+
     return {
         "year_1_savings": year_1_savings,
         "breakeven_year": breakeven_year,
         "cumulative_savings": cumulative_savings,
-        "total_25year_savings": total_cumulative
+        "total_25year_savings": total_cumulative,
+        "monthly_savings": monthly_savings,
+        "monthly_cost_allocation": monthly_cost_allocation
     }
 
 
@@ -168,9 +176,15 @@ def _calculate_battery_integrated_roi(
         if breakeven_year is None and total_cumulative >= system_cost_eur:
             breakeven_year = year
 
+    # Calculate monthly breakdown for year 1
+    monthly_savings = [year_1_savings / 12] * 12
+    monthly_cost_allocation = [system_cost_eur / (lifespan_years * 12)] * 12
+
     return {
         "year_1_savings": year_1_savings,
         "breakeven_year": breakeven_year,
         "cumulative_savings": cumulative_savings,
-        "total_25year_savings": total_cumulative
+        "total_25year_savings": total_cumulative,
+        "monthly_savings": monthly_savings,
+        "monthly_cost_allocation": monthly_cost_allocation
     }

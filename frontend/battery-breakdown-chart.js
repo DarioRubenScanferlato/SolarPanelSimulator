@@ -55,6 +55,30 @@ export function initBatteryBreakdownChart(canvasId) {
                     pointRadius: 3,
                     pointHoverRadius: 5,
                     pointBackgroundColor: '#e74c3c'
+                },
+                {
+                    label: 'Battery Charge',
+                    data: [],
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.05)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: false,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    pointBackgroundColor: '#3498db'
+                },
+                {
+                    label: 'Total Household Consumption',
+                    data: [],
+                    borderColor: '#34495e',
+                    backgroundColor: 'rgba(52, 73, 94, 0.05)',
+                    borderWidth: 2,
+                    tension: 0,
+                    fill: false,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    pointBackgroundColor: '#34495e'
                 }
             ]
         },
@@ -129,8 +153,23 @@ export function updateBatteryBreakdownChart(breakdownData) {
     }
 
     if (!breakdownData || !breakdownData.hourly_solar_consumption ||
-        !breakdownData.hourly_grid_consumption || !breakdownData.hourly_grid_export) {
+        !breakdownData.hourly_grid_consumption || !breakdownData.hourly_grid_export ||
+        !breakdownData.hourly_battery_charge || !breakdownData.hourly_load) {
         console.warn('Invalid breakdown data: missing required arrays');
+        return;
+    }
+
+    // Validate all arrays have exactly 24 hourly values (critical for data alignment)
+    const arrays = [
+        breakdownData.hourly_solar_consumption,
+        breakdownData.hourly_grid_consumption,
+        breakdownData.hourly_grid_export,
+        breakdownData.hourly_battery_charge,
+        breakdownData.hourly_load
+    ];
+
+    if (!arrays.every(arr => Array.isArray(arr) && arr.length === 24)) {
+        console.warn('Invalid breakdown data: all arrays must have exactly 24 hourly values');
         return;
     }
 
@@ -138,5 +177,7 @@ export function updateBatteryBreakdownChart(breakdownData) {
     breakdownChart.data.datasets[0].data = breakdownData.hourly_solar_consumption;
     breakdownChart.data.datasets[1].data = breakdownData.hourly_grid_consumption;
     breakdownChart.data.datasets[2].data = breakdownData.hourly_grid_export;
+    breakdownChart.data.datasets[3].data = breakdownData.hourly_battery_charge;
+    breakdownChart.data.datasets[4].data = breakdownData.hourly_load;
     breakdownChart.update();
 }

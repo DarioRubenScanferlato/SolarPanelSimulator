@@ -58,16 +58,21 @@ class SolarOutput(BaseModel):
     battery_hourly_solar_consumption: List[float] | None = Field(None, description="Hourly energy consumed directly from solar in kWh (24 values if battery present)")
     battery_hourly_grid_consumption: List[float] | None = Field(None, description="Hourly energy imported from grid in kWh (24 values if battery present)")
     battery_hourly_grid_export: List[float] | None = Field(None, description="Hourly energy exported to grid in kWh (24 values if battery present)")
+    battery_hourly_charge: List[float] | None = Field(None, description="Hourly energy going into battery in kWh (24 values if battery present)")
+    hourly_load: List[float] | None = Field(None, description="Total hourly household consumption in kWh (24 values if battery present)")
     self_consumption_pct: float | None = Field(None, description="Percentage of solar used locally (0-100)")
     grid_export_kwh: float | None = Field(None, description="Total energy exported to grid in kWh")
     grid_import_kwh: float | None = Field(None, description="Total energy imported from grid in kWh")
     battery_monthly_solar_consumption: List[float] | None = Field(None, description="Monthly solar consumption totals in kWh (up to 12 values if battery and duration >= 24h)")
     battery_monthly_grid_consumption: List[float] | None = Field(None, description="Monthly grid consumption totals in kWh (up to 12 values if battery and duration >= 24h)")
     battery_monthly_battery_discharge: List[float] | None = Field(None, description="Monthly battery discharge totals in kWh (up to 12 values if battery and duration >= 24h)")
+    cost_system_cost_eur: float | None = Field(None, description="System cost in euros (echoed from input for frontend validation)")
     cost_year_1_savings: float | None = Field(None, description="First year financial savings in euros")
     cost_breakeven_year: int | None = Field(None, description="Year when system pays for itself (or null if no payback)")
     cost_cumulative_savings: List[float] | None = Field(None, description="Cumulative savings for each year (25 values if cost present)")
     cost_total_25year_savings: float | None = Field(None, description="Total financial savings over 25 years in euros")
+    cost_monthly_savings: List[float] | None = Field(None, description="Monthly savings breakdown for year 1 (12 values if cost present)")
+    cost_monthly_cost_allocation: List[float] | None = Field(None, description="Monthly system cost allocation (12 values if cost present)")
 
 
 class ValidationError(BaseModel):

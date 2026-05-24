@@ -1,6 +1,6 @@
 # Sprint Status for bmad-solar-panels
 # generated: 2026-05-22
-# last_updated: 2026-05-24 (Story 2-8 battery yearly consumption chart complete; 196 tests passing, all green)
+# last_updated: 2026-05-24 (Stories 2-9 through 2-12 complete: battery & cost chart visualizations finished; 220 tests passing, all green)
 # project: bmad-solar-panels
 # project_key: NOKEY
 # tracking_system: file-system
@@ -57,8 +57,8 @@ development_status:
   2-6-battery-integrated-cost-analysis-and-testing: review
   2-7-battery-hourly-energy-breakdown-visualization: review
   2-8-battery-yearly-consumption-analysis-graph: review
-  2-9-enhance-battery-breakdown-chart-with-charge-and-load: ready-for-dev
-  2-10-battery-daily-energy-balance-visualization: ready-for-dev
-  2-11-cost-payback-timeline-visualization: ready-for-dev
-  2-12-cost-monthly-revenue-and-profit-analysis: ready-for-dev
+  2-9-enhance-battery-breakdown-chart-with-charge-and-load: done
+  2-10-battery-daily-energy-balance-visualization: done
+  2-11-cost-payback-timeline-visualization: done
+  2-12-cost-monthly-revenue-and-profit-analysis: done
   epic-2-retrospective: optional

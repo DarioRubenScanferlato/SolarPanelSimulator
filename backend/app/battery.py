@@ -49,6 +49,7 @@ def simulate_battery(solar_output: dict, battery_params: dict) -> dict:
     hourly_grid_consumption = []
     hourly_grid_export = []
     hourly_battery_discharge = []
+    hourly_battery_charge = []
     total_grid_export = 0.0
     total_grid_import = 0.0
 
@@ -68,7 +69,8 @@ def simulate_battery(solar_output: dict, battery_params: dict) -> dict:
             # Surplus: charge battery
             space_in_battery = capacity - soc
             energy_to_charge = min(net_gen, space_in_battery / charge_eff)
-            soc += energy_to_charge * charge_eff
+            battery_charge = energy_to_charge * charge_eff
+            soc += battery_charge
             grid_export = max(0, net_gen - energy_to_charge)
             grid_import = 0
             battery_discharge = 0
@@ -80,6 +82,7 @@ def simulate_battery(solar_output: dict, battery_params: dict) -> dict:
             grid_import = max(0, energy_needed - energy_from_battery)
             grid_export = 0
             battery_discharge = energy_from_battery
+            battery_charge = 0
 
         # Clamp SoC to valid range
         soc = max(0, min(soc, capacity))
@@ -88,6 +91,7 @@ def simulate_battery(solar_output: dict, battery_params: dict) -> dict:
         hourly_grid_consumption.append(grid_import)
         hourly_grid_export.append(grid_export)
         hourly_battery_discharge.append(battery_discharge)
+        hourly_battery_charge.append(battery_charge)
         total_grid_export += grid_export
         total_grid_import += grid_import
 
@@ -96,12 +100,17 @@ def simulate_battery(solar_output: dict, battery_params: dict) -> dict:
     self_consumed = total_solar - total_grid_export
     self_consumption_pct = (self_consumed / total_solar * 100) if total_solar > 0 else 0
 
+    # Create constant hourly load array
+    hourly_load_constant = hourly_load
+
     return {
         "battery_hourly_soc": battery_hourly_soc,
         "battery_hourly_solar_consumption": hourly_solar_consumption,
         "battery_hourly_grid_consumption": hourly_grid_consumption,
         "battery_hourly_grid_export": hourly_grid_export,
         "battery_hourly_discharge": hourly_battery_discharge,
+        "battery_hourly_charge": hourly_battery_charge,
+        "hourly_load": [hourly_load_constant] * 24,
         "self_consumption_pct": self_consumption_pct,
         "grid_export_kwh": total_grid_export,
         "grid_import_kwh": total_grid_import,
