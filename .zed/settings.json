@@ -10,7 +10,12 @@
       "settings": {
         "python.pythonPath": "./backend/.venv/bin/python",
         "python.venvPath": "./backend",
-        "python.defaultInterpreterPath": "./backend/.venv/bin/python"
+        "python.defaultInterpreterPath": "./backend/.venv/bin/python",
+        "pyrightconfig": "./backend/pyrightconfig.json"
+      },
+      "initialization_options": {
+        "pythonVersion": "3.11",
+        "typeCheckingMode": "basic"
       }
     }
   }

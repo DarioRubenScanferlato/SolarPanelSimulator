@@ -1,0 +1,35 @@
+{
+  "include": ["app", "tests"],
+  "typeCheckingMode": "basic",
+  "pythonVersion": "3.11",
+  "pythonPlatform": "darwin",
+  "venvPath": ".venv",
+  "pythonPath": ".venv/bin/python",
+  "plugins": [
+    {
+      "kind": "pylance",
+      "enabled": true
+    }
+  ],
+  "reportGeneralTypeIssues": true,
+  "reportMissingTypeStubs": false,
+  "reportUnnecessaryIsInstance": true,
+  "reportUnusedImports": true,
+  "reportUnusedClass": true,
+  "reportUnusedFunction": true,
+  "reportUnusedVariable": true,
+  "reportDuplicateImport": true,
+  "reportUnusedCallResult": false,
+  "reportUndefinedVariable": true,
+  "reportConstantRedefinition": true,
+  "reportInvalidTypeForm": true,
+  "reportOptionalCall": false,
+  "reportOptionalMemberAccess": false,
+  "reportOptionalSubscript": false,
+  "reportOptionalIterable": false,
+  "reportOptionalContextManager": false,
+  "reportOptionalOperand": false,
+  "reportTypedDictNotRequiredAccess": false,
+  "reportConstantRedefinition": true,
+  "reportPrivateUsage": false
+}
