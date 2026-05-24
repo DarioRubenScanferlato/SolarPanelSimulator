@@ -6,6 +6,11 @@
     }
   },
   "lsp": {
+    "ruff": {
+      "settings": {
+        "args": ["--preview"]
+      }
+    },
     "pyright": {
       "settings": {
         "python.pythonPath": "./backend/.venv/bin/python",
